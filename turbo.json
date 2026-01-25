@@ -1,0 +1,103 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": [
+        "CLEAN_NEST_MONGO_CONNECTION_STRING",
+        "NEXT_PUBLIC_*",
+        "NODE_ENV"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
+    },
+    "start:dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start:debug": {
+      "cache": false,
+      "persistent": true
+    },
+    "start:prod": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "outputs": [],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "**/*.js",
+        "**/*.jsx",
+        "biome.json",
+        "package.json"
+      ]
+    },
+    "format": {
+      "outputs": [],
+      "cache": false
+    },
+    "check": {
+      "outputs": [],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "**/*.js",
+        "**/*.jsx",
+        "biome.json",
+        "package.json"
+      ] 
+    },
+    "test": {
+      "outputs": ["coverage/**"],
+      "inputs": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "test/**/*.ts",
+        "**/*.spec.ts",
+        "**/*.test.ts",
+        "**/*.spec.tsx",
+        "**/*.test.tsx"
+      ]
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true
+    },
+    "test:cov": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
+    "clean": {
+      "cache": false
+    },
+    "prebuild": {
+      "outputs": []
+    }
+  },
+  "globalEnv": [
+    "NODE_ENV",
+    "CI"
+  ],
+  "globalDependencies": [
+    "biome.json",
+    "tsconfig.json",
+    ".env",
+    ".env.local"
+  ]
+}

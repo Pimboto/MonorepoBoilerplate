@@ -1,0 +1,12 @@
+/* Tailwind CSS v4 - Must be first */
+@import "tailwindcss";
+
+/* HeroUI v3 styles - Must be after Tailwind */
+@import "@heroui/styles";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: "font", sans-serif;
+  --font-mono: "monospace", monospace;
+}
