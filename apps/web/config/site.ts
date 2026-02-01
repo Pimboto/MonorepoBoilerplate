@@ -8,6 +8,10 @@ export const siteConfig = {
       label: 'Home',
       href: '/',
     },
+    {
+      label: 'Buttons',
+      href: '/buttons',
+    }
   ],
   links: {},
 };

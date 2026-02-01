@@ -4,9 +4,9 @@
   "private": true,
   "description": "Monorepo with Next.js web app and NestJS clean architecture backend",
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "dotenv -- turbo run dev",
     "build": "turbo run build",
-    "start": "turbo run start",
+    "start": "dotenv -- turbo run start",
     "lint": "turbo run lint",
     "format": "turbo run format",
     "check": "turbo run check",
@@ -14,14 +14,19 @@
     "test:watch": "turbo run test:watch",
     "test:cov": "turbo run test:cov",
     "clean": "turbo run clean && rm -rf node_modules",
-    "web:dev": "turbo run dev --filter=web",
-    "api:dev": "turbo run start:dev --filter=api",
+    "web:dev": "dotenv -- turbo run dev --filter=web",
+    "api:dev": "dotenv -- turbo run start:dev --filter=api",
     "api:build": "turbo run build --filter=api",
-    "web:build": "turbo run build --filter=web"
+    "web:build": "turbo run build --filter=web",
+    "db:generate": "cd packages/database && dotenv -e ../../.env -- pnpm prisma:generate",
+    "db:migrate": "cd packages/database && dotenv -e ../../.env -- pnpm prisma:migrate",
+    "db:seed": "cd packages/database && dotenv -e ../../.env -- pnpm prisma:seed",
+    "db:studio": "cd packages/database && dotenv -e ../../.env -- pnpm prisma:studio"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.12",
     "@vitest/coverage-v8": "^4.0.18",
+    "dotenv-cli": "^11.0.0",
     "turbo": "^2.7.6",
     "vite-tsconfig-paths": "^6.0.5",
     "vitest": "^4.0.18"

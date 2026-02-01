@@ -1,5 +1,2 @@
-import type { Book } from '../entities';
-
-export abstract class ICrmServices {
-  abstract bookAdded(book: Book): Promise<boolean>;
-}
+// Clean slate - CRM services to be defined as needed
+export abstract class ICrmServices {}

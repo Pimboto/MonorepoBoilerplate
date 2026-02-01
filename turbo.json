@@ -6,7 +6,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "env": [
-        "CLEAN_NEST_MONGO_CONNECTION_STRING",
+        "DATABASE_URL",
+        "DIRECT_DATABASE_URL",
+        "GRAPHQL_PLAYGROUND_ENABLED",
+        "GRAPHQL_INTROSPECTION_ENABLED",
         "NEXT_PUBLIC_*",
         "NODE_ENV"
       ]

@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
-import { MongoDataServicesModule } from '../../frameworks/data-services/mongo/mongo-data-services.module';
+import { Global, Module } from '@nestjs/common';
+import { PrismaDataServicesModule } from '../../frameworks/data-services/prisma/prisma-data-services.module';
 
+@Global()
 @Module({
-  imports: [MongoDataServicesModule],
-  exports: [MongoDataServicesModule],
+  imports: [PrismaDataServicesModule],
+  exports: [PrismaDataServicesModule],
 })
 export class DataServicesModule {}

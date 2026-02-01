@@ -1,10 +1,6 @@
-import type { Author, Book, Genre } from '../entities';
 import type { IGenericRepository } from './generic-repository.abstract';
 
+// Clean slate - will be populated with Better Auth entities
 export abstract class IDataServices {
-  abstract authors: IGenericRepository<Author>;
-
-  abstract books: IGenericRepository<Book>;
-
-  abstract genres: IGenericRepository<Genre>;
+  // Future: abstract users: IGenericRepository<User>;
 }

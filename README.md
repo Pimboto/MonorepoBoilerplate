@@ -33,7 +33,8 @@ cocostudio/
 ### ⚙️ API (`apps/api`)
 - **Framework:** NestJS 11.1.12
 - **Architecture:** Clean Architecture Pattern
-- **Database:** MongoDB 8.21.1 with Mongoose
+- **Database:** PostgreSQL (Neon) + Prisma 7
+- **Authentication:** Better Auth (Secure, Self-hosted)
 - **Language:** TypeScript 5.8.3
 - **Testing:** Vitest 4.0.18
 - **Validation:** class-validator 0.14.3
@@ -57,12 +58,15 @@ pnpm install
 
 ### API Environment
 
-Create `apps/api/.env`:
+Create `apps/api/.env` (or use root `.env`):
 
 ```bash
-CLEAN_NEST_MONGO_CONNECTION_STRING=mongodb://localhost:27017/your-db
-# Or MongoDB Atlas:
-# CLEAN_NEST_MONGO_CONNECTION_STRING=mongodb+srv://user:pass@cluster.mongodb.net/db
+# Database (PostgreSQL)
+DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+
+# Better Auth
+BETTER_AUTH_SECRET="your-secret-here"
+BETTER_AUTH_URL="http://localhost:3001"
 ```
 
 ### Web Environment (Optional)
