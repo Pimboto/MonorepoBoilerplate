@@ -33,9 +33,6 @@ export default function Home() {
           <GithubIcon size={20} />
           GitHub
         </CustomButton>
-
-
-
       </div>
 
       <div className="mt-8">

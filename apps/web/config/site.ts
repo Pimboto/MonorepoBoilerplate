@@ -11,7 +11,7 @@ export const siteConfig = {
     {
       label: 'Buttons',
       href: '/buttons',
-    }
+    },
   ],
   links: {},
 };

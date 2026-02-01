@@ -1,12 +1,12 @@
+import { auth } from '@cocostudio/database';
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { auth } from '@cocostudio/database';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isGraphQL = context.getType<string>() === 'graphql';
-    
+
     let request = context.switchToHttp().getRequest();
     let response = context.switchToHttp().getResponse();
 
@@ -29,8 +29,8 @@ export class AuthGuard implements CanActivate {
     }
 
     // Attach user and session to request for decorators
-    request['user'] = session.user;
-    request['session'] = session.session;
+    request.user = session.user;
+    request.session = session.session;
 
     return true;
   }

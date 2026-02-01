@@ -1,13 +1,12 @@
+import { User } from '@cocostudio/database';
 import { UseGuards } from '@nestjs/common';
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Query, Resolver } from '@nestjs/graphql';
 import { AuthGuard } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
-import { UserType } from '../types/user.type'; // Ensure this path is correct
+import { UserType } from '../types/user.type';
 
 @Resolver(() => UserType)
 export class UserResolver {
-  constructor() {}
-
   @Query(() => String, { name: 'hello' })
   async hello(): Promise<string> {
     return 'Hello World!';
@@ -15,7 +14,7 @@ export class UserResolver {
 
   @Query(() => UserType, { name: 'me' })
   @UseGuards(AuthGuard)
-  async getMe(@CurrentUser() user: any): Promise<UserType> {
-    return user;
+  async getMe(@CurrentUser() user: User): Promise<UserType> {
+    return user as unknown as UserType;
   }
 }

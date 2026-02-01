@@ -2,9 +2,11 @@ import type { IGenericRepository } from '../../../core';
 
 export class PrismaGenericRepository<T> implements IGenericRepository<T> {
   private readonly _modelName: string;
+  // biome-ignore lint/suspicious/noExplicitAny: Prisma delegates are not polymorphic
   private readonly _prismaModel: any;
   private readonly _includeRelations: Record<string, boolean>;
 
+  // biome-ignore lint/suspicious/noExplicitAny: Prisma delegates are not polymorphic
   constructor(modelName: string, prismaModel: any, includeRelations: Record<string, boolean> = {}) {
     this._modelName = modelName;
     this._prismaModel = prismaModel;
@@ -52,8 +54,8 @@ export class PrismaGenericRepository<T> implements IGenericRepository<T> {
   }
 
   // Helper: remove nested relations and computed fields for creation
-  private _sanitizeForCreate(item: any): any {
-    const sanitized = { ...item };
+  private _sanitizeForCreate(item: T): Record<string, unknown> {
+    const sanitized = { ...item } as Record<string, unknown>;
     delete sanitized.id;
     delete sanitized.createdAt;
     delete sanitized.updatedAt;
@@ -67,8 +69,8 @@ export class PrismaGenericRepository<T> implements IGenericRepository<T> {
   }
 
   // Helper: remove computed fields for updates
-  private _sanitizeForUpdate(item: any): any {
-    const sanitized = { ...item };
+  private _sanitizeForUpdate(item: T): Record<string, unknown> {
+    const sanitized = { ...item } as Record<string, unknown>;
     delete sanitized.id;
     delete sanitized.createdAt;
     delete sanitized.updatedAt;

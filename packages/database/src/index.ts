@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { neonConfig, Pool } from '@neondatabase/serverless';
 import { PrismaNeon } from '@prisma/adapter-neon';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import ws from 'ws';
+import { PrismaClient } from '@prisma/client';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import ws from 'ws';
 
 // Configure WebSocket for Neon (required for serverless environments)
 neonConfig.webSocketConstructor = ws;
@@ -44,10 +44,7 @@ function getPrismaClient(): PrismaClient {
 
   globalForPrisma.prisma = new PrismaClient({
     adapter,
-    log:
-      process.env.NODE_ENV === 'development'
-        ? ['query', 'info', 'warn', 'error']
-        : ['error'],
+    log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
   });
 
   return globalForPrisma.prisma;

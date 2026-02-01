@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Button } from "@heroui/react";
-import type { ComponentProps } from "react";
+import { Button } from '@heroui/react';
+import type { ComponentProps } from 'react';
 
 /**
  * CustomButton - Botón estilo iOS con "Luz arriba, sombra abajo y stroke delgado".
@@ -14,7 +14,11 @@ import type { ComponentProps } from "react";
  * - Diseño exactamente igual a la imagen de referencia
  * - Soporta href automáticamente (HeroUI convierte el Button en Link)
  */
-export const CustomButton = ({ className = "", children, ...props }: ComponentProps<typeof Button>) => {
+export const CustomButton = ({
+  className = '',
+  children,
+  ...props
+}: ComponentProps<typeof Button>) => {
   return (
     <Button
       className={`
