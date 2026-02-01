@@ -1,11 +1,13 @@
 import { join } from 'node:path';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Inject, Module, OnModuleInit } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
+import { LoggerModule, LoggerService } from '../logger';
 
 @Module({
   imports: [
+    LoggerModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
 
@@ -30,8 +32,9 @@ import { GraphQLModule } from '@nestjs/graphql';
       context: ({ req, res }) => ({ req, res }),
 
       // Error formatting
-      formatError: error => {
+      formatError: (error) => {
         const isDevelopment = process.env.NODE_ENV === 'development';
+
         return {
           message: error.message,
           code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
@@ -44,9 +47,18 @@ import { GraphQLModule } from '@nestjs/graphql';
       },
     }),
   ],
+  providers: [LoggerService],
 })
 export class GraphQLConfigModule implements OnModuleInit {
-  onModuleInit() {
-    console.log('GraphQLConfigModule initialized - Apollo Sandbox enabled at /graphql');
+  constructor(@Inject(LoggerService) private readonly logger: LoggerService) {
+    this.logger.setContext('GraphQLConfigModule');
+  }
+
+  onModuleInit(): void {
+    this.logger.log('GraphQL module initialized', {
+      endpoint: '/graphql',
+      sandbox: 'enabled',
+      introspection: true,
+    });
   }
 }

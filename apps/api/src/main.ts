@@ -1,10 +1,7 @@
 import { join } from 'node:path';
-import { auth } from '@cocostudio/database'; // Import auth instance
 import { NestFactory } from '@nestjs/core';
-import { toNodeHandler } from 'better-auth/node';
-import * as bodyParser from 'body-parser';
+import { Logger } from 'nestjs-pino';
 import { config } from 'dotenv';
-import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
 
 // Load .env from the monorepo root (2 levels up from apps/api)
@@ -13,31 +10,13 @@ config({ path: envPath });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    bodyParser: false, // Disable default body parser
+    bufferLogs: true,
   });
 
-  // Mount Better Auth handler manually
-  app.use('/api/auth', toNodeHandler(auth));
+  // Use Pino logger
+  app.useLogger(app.get(Logger));
 
-  // Manually apply body parser to all routes EXCEPT Better Auth routes (which handles its own body)
-  app.use(async (req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith('/api/auth')) {
-      next();
-    } else {
-      bodyParser.json()(req, res, next);
-    }
-  });
-
-  // Also apply urlencoded
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith('/api/auth')) {
-      next();
-    } else {
-      bodyParser.urlencoded({ extended: true })(req, res, next);
-    }
-  });
-
-  // Enable CORS
+  // Enable CORS for GraphQL and frontend
   app.enableCors({
     origin: [
       process.env.BETTER_AUTH_URL || 'http://localhost:3000',
@@ -48,6 +27,11 @@ async function bootstrap() {
     credentials: true,
   });
 
-  await app.listen(process.env.API_PORT ?? 3001);
+  const port = process.env.API_PORT ?? 3001;
+  await app.listen(port);
+
+  const logger = app.get(Logger);
+  logger.log(`Application is running on: http://localhost:${port}`, 'Bootstrap');
+  logger.log(`GraphQL Sandbox: http://localhost:${port}/graphql`, 'Bootstrap');
 }
 bootstrap();
