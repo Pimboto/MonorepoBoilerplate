@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import { config } from 'dotenv';
 import { AppModule } from './app.module';
+import { GqlLoggingInterceptor, LoggerService } from './frameworks/logger';
 
 // Load .env from the monorepo root (2 levels up from apps/api)
 const envPath = join(process.cwd(), '../../.env');
@@ -15,6 +16,10 @@ async function bootstrap() {
 
   // Use Pino logger
   app.useLogger(app.get(Logger));
+
+  // Register GraphQL logging interceptor
+  const loggerService = app.get(LoggerService);
+  app.useGlobalInterceptors(new GqlLoggingInterceptor(loggerService));
 
   // Enable CORS for GraphQL and frontend
   app.enableCors({
