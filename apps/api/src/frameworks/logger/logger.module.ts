@@ -1,7 +1,8 @@
 // logger.module.ts
+
+import { randomUUID } from 'node:crypto';
 import { Module } from '@nestjs/common';
 import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
-import { randomUUID } from 'node:crypto';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -30,7 +31,7 @@ const isProd = process.env.NODE_ENV === 'production';
           paths: [
             'req.headers.authorization',
             'req.headers.cookie',
-            'req.headers[\"set-cookie\"]',
+            'req.headers["set-cookie"]',
             'req.body.password',
             'req.body.token',
             'req.body.accessToken',
@@ -41,17 +42,14 @@ const isProd = process.env.NODE_ENV === 'production';
 
         // Crear / propagar requestId
         genReqId: (req, res) => {
-          const headerId =
-            req.id ||
-            req.headers['x-request-id'] ||
-            req.headers['x-correlation-id'];
+          const headerId = req.id || req.headers['x-request-id'] || req.headers['x-correlation-id'];
 
           const id = String(headerId || randomUUID());
           res.setHeader('x-request-id', id);
           return id;
         },
 
-        customProps: (req) => {
+        customProps: req => {
           const anyReq = req as any;
 
           // Intenta sacar userId desde distintos sitios (rest, graphql, better-auth)
@@ -73,7 +71,7 @@ const isProd = process.env.NODE_ENV === 'production';
         },
 
         autoLogging: {
-          ignore: (req) => {
+          ignore: req => {
             const url = req.url || '';
             if (url === '/health' || url === '/') return true;
             // Ignorar introspección de GraphQL

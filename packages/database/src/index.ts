@@ -3,6 +3,8 @@ import { PrismaNeon } from '@prisma/adapter-neon';
 import { PrismaClient } from '@prisma/client';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { emailOTP } from 'better-auth/plugins';
+import { Resend } from 'resend';
 import ws from 'ws';
 
 // Configure WebSocket for Neon (required for serverless environments)
@@ -63,6 +65,15 @@ export const prisma = new Proxy({} as PrismaClient, {
   },
 });
 
+// Lazy Resend initialization (same pattern as Prisma — env vars aren't available at import time)
+let resendInstance: Resend | undefined;
+function getResend(): Resend {
+  if (!resendInstance) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendInstance;
+}
+
 // Initialize Better Auth with the lazy prisma client
 // Note: We access the proxy directly
 export const auth = betterAuth({
@@ -71,7 +82,33 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
   },
+  plugins: [
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {
+        const subjects: Record<string, string> = {
+          'email-verification': 'Verify your email - StarStudio',
+          'forget-password': 'Reset your password - StarStudio',
+          'sign-in': 'Sign in to StarStudio',
+        };
+        await getResend().emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+          to: email,
+          subject: subjects[type] || 'StarStudio Verification',
+          html: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`,
+        });
+      },
+      sendVerificationOnSignUp: true,
+      otpLength: 6,
+      expiresIn: 600,
+    }),
+  ],
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
+  trustedOrigins: [
+    'http://localhost:3000', // Frontend (Next.js)
+    'http://localhost:3001', // Backend (NestJS)
+  ],
 });
 
 // Re-export PrismaClient and types for convenience

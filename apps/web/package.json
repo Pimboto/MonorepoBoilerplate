@@ -12,17 +12,23 @@
     "clean": "rimraf .next .turbo node_modules"
   },
   "dependencies": {
+    "@cocostudio/shared": "workspace:*",
     "@heroui/react": "beta",
     "@heroui/styles": "beta",
     "@react-aria/ssr": "3.9.10",
     "@react-aria/visually-hidden": "3.8.29",
+    "@uploadthing/react": "^7.3.3",
     "clsx": "2.1.1",
-    "iconsax-react": "^0.0.8",
+    "graphql": "^16.12.0",
+    "graphql-request": "^7.4.0",
+    "iconsax-reactjs": "^0.0.8",
     "intl-messageformat": "10.7.16",
     "next": "15.5.9",
     "next-themes": "0.4.6",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "uploadthing": "^7.7.4",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@react-types/shared": "3.32.1",

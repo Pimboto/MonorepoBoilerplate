@@ -3,13 +3,20 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ],
       "env": [
         "DATABASE_URL",
         "DIRECT_DATABASE_URL",
         "GRAPHQL_PLAYGROUND_ENABLED",
         "GRAPHQL_INTROSPECTION_ENABLED",
+        "UPLOADTHING_TOKEN",
         "NEXT_PUBLIC_*",
         "NODE_ENV"
       ]
@@ -19,7 +26,9 @@
       "persistent": true
     },
     "start": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "cache": false,
       "persistent": true
     },
@@ -32,7 +41,9 @@
       "persistent": true
     },
     "start:prod": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "cache": false,
       "persistent": true
     },
@@ -60,10 +71,12 @@
         "**/*.jsx",
         "biome.json",
         "package.json"
-      ] 
+      ]
     },
     "test": {
-      "outputs": ["coverage/**"],
+      "outputs": [
+        "coverage/**"
+      ],
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",
@@ -79,11 +92,17 @@
       "persistent": true
     },
     "test:cov": {
-      "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
     },
     "test:e2e": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "outputs": []
     },
     "clean": {

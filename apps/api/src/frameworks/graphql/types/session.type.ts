@@ -8,6 +8,12 @@ export class SessionType {
   @Field()
   expiresAt: Date;
 
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  token: string;
+
   @Field(() => String, { nullable: true })
   ipAddress?: string | null;
 

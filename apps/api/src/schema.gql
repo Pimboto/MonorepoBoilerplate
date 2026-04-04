@@ -8,12 +8,73 @@ type AuthPayload {
   user: UserType!
 }
 
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+}
+
+type CollectionType {
+  createdAt: DateTime!
+  description: String
+  files: [FileType!]
+  id: ID!
+  name: String!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+input CreateCollectionInput {
+  description: String
+  name: String!
+}
+
+input CreateFileInput {
+  collectionId: String!
+  key: String!
+  name: String!
+  size: Int!
+  type: String!
+  url: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
+type FileType {
+  collectionId: String!
+  createdAt: DateTime!
+  id: ID!
+  key: String!
+  name: String!
+  size: Int!
+  type: String!
+  updatedAt: DateTime!
+  url: String!
+  userId: String!
+}
+
 type Mutation {
+  """Change password"""
+  changePassword(input: ChangePasswordInput!): Boolean!
+  createCollection(input: CreateCollectionInput!): CollectionType!
+  createFile(input: CreateFileInput!): FileType!
+  deleteCollection(id: ID!): Boolean!
+  deleteFile(id: ID!): Boolean!
+
+  """Request a password reset OTP"""
+  requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
+
+  """Reset password using OTP"""
+  resetPassword(input: ResetPasswordInput!): Boolean!
+
+  """Revoke a session by token"""
+  revokeSession(sessionToken: String!): Boolean!
+
+  """Send a verification OTP to an email address"""
+  sendVerificationOtp(input: SendVerificationOtpInput!): Boolean!
+
   """Sign in an existing user"""
   signIn(input: SignInInput!): AuthPayload!
 
@@ -22,17 +83,57 @@ type Mutation {
 
   """Sign up a new user"""
   signUp(input: SignUpInput!): AuthPayload!
+  updateCollection(id: ID!, input: UpdateCollectionInput!): CollectionType!
+
+  """Update user profile (name, image)"""
+  updateProfile(input: UpdateProfileInput!): UserType!
+
+  """Verify email address with OTP"""
+  verifyEmail(input: VerifyEmailInput!): Boolean!
+}
+
+"""Response for mySessions query including current session identifier"""
+type MySessionsResponse {
+  """Token of the currently active session"""
+  currentSessionToken: String!
+  sessions: [SessionType!]!
 }
 
 type Query {
+  collection(id: ID!): CollectionType!
+  collections: [CollectionType!]!
+  filesByCollection(collectionId: ID!): [FileType!]!
   hello: String!
   me: UserType!
+
+  """List active sessions with current session identifier"""
+  mySessions: MySessionsResponse!
+}
+
+"""Request password reset input"""
+input RequestPasswordResetInput {
+  email: String!
+}
+
+"""Reset password with OTP input"""
+input ResetPasswordInput {
+  email: String!
+  newPassword: String!
+  otp: String!
+}
+
+"""Send verification OTP input"""
+input SendVerificationOtpInput {
+  email: String!
+  type: String!
 }
 
 type SessionType {
+  createdAt: DateTime!
   expiresAt: DateTime!
   id: ID!
   ipAddress: String
+  token: String!
   userAgent: String
   userId: String!
 }
@@ -48,6 +149,16 @@ input SignUpInput {
   password: String!
 }
 
+input UpdateCollectionInput {
+  description: String
+  name: String
+}
+
+input UpdateProfileInput {
+  image: String
+  name: String
+}
+
 type UserType {
   createdAt: DateTime!
   email: String!
@@ -56,4 +167,10 @@ type UserType {
   image: String
   name: String!
   updatedAt: DateTime!
+}
+
+"""Verify email with OTP input"""
+input VerifyEmailInput {
+  email: String!
+  otp: String!
 }

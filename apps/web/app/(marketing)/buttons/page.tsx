@@ -11,7 +11,7 @@ import {
   Star1,
   TickCircle,
   Trash,
-} from 'iconsax-react';
+} from 'iconsax-reactjs';
 import { CustomButton } from '@/components/ui/CustomButton';
 
 export default function Buttons() {

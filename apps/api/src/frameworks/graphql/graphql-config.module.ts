@@ -32,7 +32,7 @@ import { LoggerModule, LoggerService } from '../logger';
       context: ({ req, res }) => ({ req, res }),
 
       // Error formatting
-      formatError: (error) => {
+      formatError: error => {
         const isDevelopment = process.env.NODE_ENV === 'development';
 
         return {

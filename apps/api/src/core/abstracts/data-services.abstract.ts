@@ -1,4 +1,7 @@
-// Clean slate - will be populated with Better Auth entities
+import type { ICollectionRepository } from './collection-repository.abstract';
+import type { IFileRepository } from './file-repository.abstract';
+
 export abstract class IDataServices {
-  // Future: abstract users: IGenericRepository<User>;
+  abstract collections: ICollectionRepository;
+  abstract files: IFileRepository;
 }

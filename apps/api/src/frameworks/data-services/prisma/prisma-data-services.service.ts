@@ -1,12 +1,18 @@
 import { Injectable, type OnApplicationBootstrap } from '@nestjs/common';
-import type { IDataServices } from '../../../core';
+import type { ICollectionRepository, IDataServices, IFileRepository } from '../../../core';
 import { PrismaService } from './prisma.service';
+import { PrismaCollectionRepository } from './prisma-collection.repository';
+import { PrismaFileRepository } from './prisma-file.repository';
 
 @Injectable()
 export class PrismaDataServices implements IDataServices, OnApplicationBootstrap {
+  collections: ICollectionRepository;
+  files: IFileRepository;
+
   constructor(readonly prisma: PrismaService) {}
 
   onApplicationBootstrap() {
-    // Clean slate - repositories will be added when Better Auth entities are defined
+    this.collections = new PrismaCollectionRepository();
+    this.files = new PrismaFileRepository();
   }
 }

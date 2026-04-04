@@ -2,9 +2,13 @@
 
 import NextLink from 'next/link';
 import { ThemeSwitch } from '@/components/theme-switch';
+import { CustomButton } from '@/components/ui/CustomButton';
 import { siteConfig } from '@/config/site';
+import { useAuth } from '@/context/auth-context';
 
 export const Navbar = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-6">
@@ -31,6 +35,21 @@ export const Navbar = () => {
 
           {/* Right side actions */}
           <div className="flex items-center gap-4">
+            {!isLoading &&
+              (isAuthenticated ? (
+                <NextLink href="/app">
+                  <CustomButton>Go to App</CustomButton>
+                </NextLink>
+              ) : (
+                <>
+                  <NextLink href="/login">
+                    <CustomButton variant="ghost">Login</CustomButton>
+                  </NextLink>
+                  <NextLink href="/signup">
+                    <CustomButton>Sign Up</CustomButton>
+                  </NextLink>
+                </>
+              ))}
             <ThemeSwitch />
           </div>
         </div>

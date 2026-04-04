@@ -4,9 +4,18 @@
 /* HeroUI v3 styles - Must be after Tailwind */
 @import "@heroui/styles";
 
+/* UploadThing styles - Tailwind v4 compatible */
+@import "uploadthing/tw/v4";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-sans: "font", sans-serif;
   --font-mono: "monospace", monospace;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 90%;
+  }
 }

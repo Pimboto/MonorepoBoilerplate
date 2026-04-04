@@ -46,6 +46,17 @@ export class BadRequestError extends GraphQLError {
   }
 }
 
+export class NotFoundError extends GraphQLError {
+  constructor(message: string) {
+    super(message, {
+      extensions: {
+        code: 'NOT_FOUND',
+        http: { status: 404 },
+      },
+    });
+  }
+}
+
 export class InternalServerError extends GraphQLError {
   constructor(message: string) {
     super(message, {

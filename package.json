@@ -18,10 +18,13 @@
     "api:dev": "dotenv -- turbo run start:dev --filter=api",
     "api:build": "turbo run build --filter=api",
     "web:build": "turbo run build --filter=web",
-    "db:generate": "cd packages/database && dotenv -e ../../.env -- pnpm prisma:generate",
-    "db:migrate": "cd packages/database && dotenv -e ../../.env -- pnpm prisma:migrate",
-    "db:seed": "cd packages/database && dotenv -e ../../.env -- pnpm prisma:seed",
-    "db:studio": "cd packages/database && dotenv -e ../../.env -- pnpm prisma:studio"
+    "db:generate": "cd packages/database && dotenv -e ../../.env -- pnpm exec prisma generate",
+    "db:push": "cd packages/database && dotenv -e ../../.env -- pnpm exec prisma db push",
+    "db:migrate": "cd packages/database && dotenv -e ../../.env -- pnpm exec prisma migrate dev",
+    "db:deploy": "cd packages/database && dotenv -e ../../.env -- pnpm exec prisma migrate deploy",
+    "db:seed": "cd packages/database && dotenv -e ../../.env -- pnpm exec prisma db seed",
+    "db:studio": "cd packages/database && dotenv -e ../../.env -- pnpm exec prisma studio",
+    "db:reset": "cd packages/database && dotenv -e ../../.env -- pnpm exec prisma migrate reset --force"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.12",

@@ -40,18 +40,14 @@ export class GqlLoggingInterceptor implements NestInterceptor {
             durationMs: Date.now() - now,
           });
         },
-        error: (error) => {
-          this.logger.error(
-            'GraphQL error',
-            error.stack,
-            {
-              operation,
-              resolver: resolverName,
-              field: fieldName,
-              durationMs: Date.now() - now,
-              error: error.message,
-            },
-          );
+        error: error => {
+          this.logger.error('GraphQL error', error.stack, {
+            operation,
+            resolver: resolverName,
+            field: fieldName,
+            durationMs: Date.now() - now,
+            error: error.message,
+          });
         },
       }),
     );

@@ -1,2 +1,2 @@
-// Entities - Clean slate for Better Auth
-export {};
+export * from './collection.entity';
+export * from './file.entity';

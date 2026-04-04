@@ -1,18 +1,18 @@
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
-import type { Request, Response } from 'express';
 import { auth } from '@cocostudio/database';
 import { signInSchema, signUpSchema } from '@cocostudio/shared';
-import { LoggerService } from '../../logger';
+import { UseGuards } from '@nestjs/common';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import type { Request, Response } from 'express';
 import { AuthGuard } from '../../auth/auth.guard';
+import { LoggerService } from '../../logger';
 import {
   AuthenticationError,
-  ValidationError,
   BadRequestError,
   InternalServerError,
+  ValidationError,
 } from '../errors/auth.error';
-import { AuthPayload } from '../types/auth.payload';
 import { SignInInput, SignUpInput } from '../types/auth.input';
+import { AuthPayload } from '../types/auth.payload';
 
 @Resolver()
 export class AuthResolver {
@@ -41,9 +41,9 @@ export class AuthResolver {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'origin': context.req.headers.origin || baseUrl,
+          origin: context.req.headers.origin || baseUrl,
           'user-agent': context.req.headers['user-agent'] || 'GraphQL-Client',
-          ...(context.req.headers.cookie ? { 'cookie': context.req.headers.cookie } : {}),
+          ...(context.req.headers.cookie ? { cookie: context.req.headers.cookie } : {}),
         },
         body: JSON.stringify(validatedInput),
       });
@@ -71,8 +71,10 @@ export class AuthResolver {
 
         // Check for specific error cases
         const errorMessage = data.message || 'Sign up failed';
-        if (errorMessage.toLowerCase().includes('already exists') ||
-            errorMessage.toLowerCase().includes('already registered')) {
+        if (
+          errorMessage.toLowerCase().includes('already exists') ||
+          errorMessage.toLowerCase().includes('already registered')
+        ) {
           throw new BadRequestError('Email already registered', { email: input.email });
         }
 
@@ -148,9 +150,9 @@ export class AuthResolver {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'origin': context.req.headers.origin || baseUrl,
+          origin: context.req.headers.origin || baseUrl,
           'user-agent': context.req.headers['user-agent'] || 'GraphQL-Client',
-          ...(context.req.headers.cookie ? { 'cookie': context.req.headers.cookie } : {}),
+          ...(context.req.headers.cookie ? { cookie: context.req.headers.cookie } : {}),
         },
         body: JSON.stringify(validatedInput),
       });
@@ -225,9 +227,7 @@ export class AuthResolver {
 
   @Mutation(() => Boolean, { description: 'Sign out the current user' })
   @UseGuards(AuthGuard)
-  async signOut(
-    @Context() context: { req: Request; res: Response },
-  ): Promise<boolean> {
+  async signOut(@Context() context: { req: Request; res: Response }): Promise<boolean> {
     const userId = (context.req as any).user?.id;
     this.logger.log('Sign out attempt', { userId });
 
@@ -238,9 +238,9 @@ export class AuthResolver {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          'origin': context.req.headers.origin || baseUrl,
+          origin: context.req.headers.origin || baseUrl,
           'user-agent': context.req.headers['user-agent'] || 'GraphQL-Client',
-          ...(context.req.headers.cookie ? { 'cookie': context.req.headers.cookie } : {}),
+          ...(context.req.headers.cookie ? { cookie: context.req.headers.cookie } : {}),
         },
       });
 

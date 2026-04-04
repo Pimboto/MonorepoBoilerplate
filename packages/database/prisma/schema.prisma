@@ -12,15 +12,17 @@ datasource db {
 // Clean slate - Better Auth will generate User, Session, Account, Verification models
 
 model User {
-  id            String    @id
+  id            String       @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   sessions      Session[]
   accounts      Account[]
+  collections   Collection[]
+  files         File[]
 
   @@unique([email])
   @@map("user")
@@ -72,4 +74,37 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  files       File[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("collection")
+}
+
+model File {
+  id           String     @id @default(cuid())
+  name         String
+  url          String
+  key          String     @unique
+  size         Int
+  type         String
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([collectionId])
+  @@index([userId])
+  @@map("file")
 }
