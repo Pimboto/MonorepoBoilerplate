@@ -6,7 +6,7 @@ import { Calendar1, DocumentCopy, Eye, Folder, Trash } from 'iconsax-reactjs';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { CustomButton } from '@/components/ui/CustomButton';
-import { Collection } from '@/features/collections/types';
+import type { Collection } from '@/features/collections/types';
 import { DELETE_COLLECTION } from '@/lib/graphql/collections';
 import { graphqlClient } from '@/lib/graphql-client';
 import { EditCollectionModal } from './edit-collection-modal';
@@ -48,8 +48,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
       await graphqlClient.request(DELETE_COLLECTION, { id: collection.id });
       toast.success('Collection removed');
       router.refresh();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.danger('Could not remove collection');
     } finally {
       setDeleting(false);
@@ -96,21 +95,6 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             ? '-translate-y-2 -translate-x-2 -rotate-3 scale-[0.96] opacity-100'
             : 'translate-y-0 rotate-0 scale-100 opacity-0',
           !secondImage && 'bg-default-300/40',
-        )}
-      >
-        {secondImage && (
-          <img src={secondImage} alt="" className="w-full h-full object-cover opacity-80" />
-        )}
-      </div>
-
-      {/* Capa 2 (La del medio) */}
-      <div
-        className={clsx(
-          'absolute inset-0 rounded-2xl transition-all duration-500 ease-out delay-75 overflow-hidden shadow-sm',
-          isHovered
-            ? '-translate-y-2 scale-[0.96] -rotate-2 opacity-100'
-            : 'translate-y-0 scale-100 opacity-0',
-          !secondImage && 'bg-default-300/40', // Fallback color
         )}
       >
         {secondImage && (

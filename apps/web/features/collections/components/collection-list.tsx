@@ -1,6 +1,6 @@
 'use client';
 
-import { Collection } from '../types';
+import type { Collection } from '../types';
 import { CollectionCard } from './collection-card';
 import { CreateCollectionModal } from './create-collection-modal';
 

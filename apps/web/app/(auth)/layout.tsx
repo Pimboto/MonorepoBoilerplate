@@ -7,10 +7,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Link href="/" className="flex flex-col items-center gap-3 group">
           <img
             src="/logo.svg"
-            alt="StarStudio"
+            alt="CocoStudio"
             className="h-12 w-12 rounded-xl transition-transform group-hover:scale-105"
           />
-          <span className="font-bold text-xl tracking-tight text-foreground">StarStudio</span>
+          <span className="font-bold text-xl tracking-tight text-foreground">CocoStudio</span>
         </Link>
       </div>
       <div className="w-full max-w-sm">{children}</div>

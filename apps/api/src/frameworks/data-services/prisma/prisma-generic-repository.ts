@@ -1,4 +1,5 @@
 import type { IGenericRepository } from '../../../core';
+import { NotFoundError } from '../../../core/errors';
 
 export class PrismaGenericRepository<T> implements IGenericRepository<T> {
   private readonly _modelName: string;
@@ -27,7 +28,7 @@ export class PrismaGenericRepository<T> implements IGenericRepository<T> {
     });
 
     if (!result) {
-      throw new Error(`${this._modelName} with id ${id} not found`);
+      throw new NotFoundError(`${this._modelName} not found`);
     }
 
     return result;

@@ -1,13 +1,16 @@
-import { auth, prisma } from '@cocostudio/database';
 import { changePasswordSchema, updateProfileSchema } from '@cocostudio/shared';
 import { UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
-import { IStorageService } from '../../../core/abstracts/storage-service.abstract';
+import { DomainError } from '../../../core/errors';
+import { ChangePasswordUseCase } from '../../../use-cases/profile/change-password.use-case';
+import { ListSessionsUseCase } from '../../../use-cases/profile/list-sessions.use-case';
+import { RevokeSessionUseCase } from '../../../use-cases/profile/revoke-session.use-case';
+import { UpdateProfileUseCase } from '../../../use-cases/profile/update-profile.use-case';
 import { AuthGuard } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { LoggerService } from '../../logger';
-import { BadRequestError, InternalServerError, ValidationError } from '../errors/auth.error';
+import { InternalServerError, toGraphQLError, ValidationError } from '../errors/auth.error';
 import { MySessionsResponse } from '../types/my-sessions.response';
 import { ChangePasswordInput, UpdateProfileInput } from '../types/profile.input';
 import { UserType } from '../types/user.type';
@@ -23,7 +26,10 @@ interface AuthUser {
 export class ProfileResolver {
   constructor(
     private readonly logger: LoggerService,
-    private readonly storageService: IStorageService,
+    private readonly updateProfileUseCase: UpdateProfileUseCase,
+    private readonly changePasswordUseCase: ChangePasswordUseCase,
+    private readonly listSessionsUseCase: ListSessionsUseCase,
+    private readonly revokeSessionUseCase: RevokeSessionUseCase,
   ) {
     this.logger.setContext('ProfileResolver');
   }
@@ -37,38 +43,11 @@ export class ProfileResolver {
 
     try {
       const validated = updateProfileSchema.parse(input);
-
-      // Delete old profile image from UploadThing if replacing with a new one
-      if (validated.image) {
-        const currentUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { image: true },
-        });
-        if (currentUser?.image) {
-          try {
-            const oldKey = currentUser.image.split('/').pop();
-            if (oldKey) {
-              await this.storageService.deleteFile(oldKey);
-            }
-          } catch {
-            this.logger.warn('Failed to delete old profile image from storage', {
-              userId: user.id,
-            });
-          }
-        }
-      }
-
-      const updated = await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          ...(validated.name !== undefined && { name: validated.name }),
-          ...(validated.image !== undefined && { image: validated.image }),
-        },
-      });
-
+      const updated = await this.updateProfileUseCase.execute(user.id, validated);
       this.logger.log('Profile updated', { userId: user.id });
       return updated as unknown as UserType;
     } catch (error: unknown) {
+      if (error instanceof DomainError) throw toGraphQLError(error);
       const err = error as { name?: string; errors?: { path: string[]; message: string }[] };
       if (err.name === 'ZodError' && err.errors) {
         const fields: Record<string, string> = {};
@@ -96,34 +75,17 @@ export class ProfileResolver {
       changePasswordSchema.parse(input);
 
       const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3001';
-      const mockRequest = new Request(`${baseUrl}/api/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          origin: context.req.headers.origin || baseUrl,
-          ...(context.req.headers.cookie ? { cookie: context.req.headers.cookie } : {}),
-        },
-        body: JSON.stringify({
-          currentPassword: input.currentPassword,
-          newPassword: input.newPassword,
-        }),
-      });
+      const headers: Record<string, string> = {
+        origin: (context.req.headers.origin as string) || baseUrl,
+        ...(context.req.headers.cookie ? { cookie: context.req.headers.cookie } : {}),
+      };
 
-      const result = await auth.handler(mockRequest);
-
-      if (result.status !== 200) {
-        const data = await result.json();
-        throw new BadRequestError(
-          (data as { message?: string }).message || 'Failed to change password',
-        );
-      }
+      await this.changePasswordUseCase.execute(headers, input.currentPassword, input.newPassword);
 
       this.logger.log('Password changed', { userId: user.id });
       return true;
     } catch (error: unknown) {
-      if (error instanceof BadRequestError || error instanceof ValidationError) {
-        throw error;
-      }
+      if (error instanceof DomainError) throw toGraphQLError(error);
       const err = error as { name?: string; errors?: { path: string[]; message: string }[] };
       if (err.name === 'ZodError' && err.errors) {
         const fields: Record<string, string> = {};
@@ -145,17 +107,16 @@ export class ProfileResolver {
   })
   async mySessions(@Context() context: { req: Request }): Promise<MySessionsResponse> {
     try {
-      const sessions = await auth.api.listSessions({
-        headers: context.req.headers as unknown as Headers,
-      });
-
+      const headers = context.req.headers as unknown as Record<string, string>;
+      const sessions = await this.listSessionsUseCase.execute(headers);
       const currentToken = (context.req as { session?: { token?: string } }).session?.token || '';
 
       return {
-        sessions: (sessions || []) as unknown as MySessionsResponse['sessions'],
+        sessions: sessions as unknown as MySessionsResponse['sessions'],
         currentSessionToken: currentToken,
       };
     } catch (error: unknown) {
+      if (error instanceof DomainError) throw toGraphQLError(error);
       this.logger.error('List sessions error', (error as Error).stack);
       throw new InternalServerError('Failed to list sessions');
     }
@@ -170,14 +131,13 @@ export class ProfileResolver {
     this.logger.log('Revoke session attempt', { userId: user.id });
 
     try {
-      await auth.api.revokeSession({
-        headers: context.req.headers as unknown as Headers,
-        body: { token: sessionToken },
-      });
+      const headers = context.req.headers as unknown as Record<string, string>;
+      await this.revokeSessionUseCase.execute(headers, sessionToken);
 
       this.logger.log('Session revoked', { userId: user.id });
       return true;
     } catch (error: unknown) {
+      if (error instanceof DomainError) throw toGraphQLError(error);
       this.logger.error('Revoke session error', (error as Error).stack, {
         userId: user.id,
       });

@@ -5,7 +5,11 @@ import { getCollection } from '@/features/collections/actions';
 import { FileList } from '@/features/files/components/file-list';
 import { CollectionUploader } from '@/features/files/components/uploader';
 
-export default async function CollectionDetailPage({ params }: { params: { id: string } }) {
+export default async function CollectionDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const collection = await getCollection(id);
 

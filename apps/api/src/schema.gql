@@ -56,45 +56,69 @@ type FileType {
 }
 
 type Mutation {
-  """Change password"""
+  """
+  Change password
+  """
   changePassword(input: ChangePasswordInput!): Boolean!
   createCollection(input: CreateCollectionInput!): CollectionType!
   createFile(input: CreateFileInput!): FileType!
   deleteCollection(id: ID!): Boolean!
   deleteFile(id: ID!): Boolean!
 
-  """Request a password reset OTP"""
+  """
+  Request a password reset OTP
+  """
   requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
 
-  """Reset password using OTP"""
+  """
+  Reset password using OTP
+  """
   resetPassword(input: ResetPasswordInput!): Boolean!
 
-  """Revoke a session by token"""
+  """
+  Revoke a session by token
+  """
   revokeSession(sessionToken: String!): Boolean!
 
-  """Send a verification OTP to an email address"""
+  """
+  Send a verification OTP to an email address
+  """
   sendVerificationOtp(input: SendVerificationOtpInput!): Boolean!
 
-  """Sign in an existing user"""
+  """
+  Sign in an existing user
+  """
   signIn(input: SignInInput!): AuthPayload!
 
-  """Sign out the current user"""
+  """
+  Sign out the current user
+  """
   signOut: Boolean!
 
-  """Sign up a new user"""
+  """
+  Sign up a new user
+  """
   signUp(input: SignUpInput!): AuthPayload!
   updateCollection(id: ID!, input: UpdateCollectionInput!): CollectionType!
 
-  """Update user profile (name, image)"""
+  """
+  Update user profile (name, image)
+  """
   updateProfile(input: UpdateProfileInput!): UserType!
 
-  """Verify email address with OTP"""
+  """
+  Verify email address with OTP
+  """
   verifyEmail(input: VerifyEmailInput!): Boolean!
 }
 
-"""Response for mySessions query including current session identifier"""
+"""
+Response for mySessions query including current session identifier
+"""
 type MySessionsResponse {
-  """Token of the currently active session"""
+  """
+  Token of the currently active session
+  """
   currentSessionToken: String!
   sessions: [SessionType!]!
 }
@@ -103,26 +127,33 @@ type Query {
   collection(id: ID!): CollectionType!
   collections: [CollectionType!]!
   filesByCollection(collectionId: ID!): [FileType!]!
-  hello: String!
   me: UserType!
 
-  """List active sessions with current session identifier"""
+  """
+  List active sessions with current session identifier
+  """
   mySessions: MySessionsResponse!
 }
 
-"""Request password reset input"""
+"""
+Request password reset input
+"""
 input RequestPasswordResetInput {
   email: String!
 }
 
-"""Reset password with OTP input"""
+"""
+Reset password with OTP input
+"""
 input ResetPasswordInput {
   email: String!
   newPassword: String!
   otp: String!
 }
 
-"""Send verification OTP input"""
+"""
+Send verification OTP input
+"""
 input SendVerificationOtpInput {
   email: String!
   type: String!
@@ -169,7 +200,9 @@ type UserType {
   updatedAt: DateTime!
 }
 
-"""Verify email with OTP input"""
+"""
+Verify email with OTP input
+"""
 input VerifyEmailInput {
   email: String!
   otp: String!

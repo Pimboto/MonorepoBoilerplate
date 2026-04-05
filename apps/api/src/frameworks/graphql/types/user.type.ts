@@ -14,8 +14,8 @@ export class UserType {
   @Field()
   emailVerified: boolean;
 
-  @Field({ nullable: true })
-  image?: string;
+  @Field(() => String, { nullable: true })
+  image?: string | null;
 
   @Field()
   createdAt: Date;

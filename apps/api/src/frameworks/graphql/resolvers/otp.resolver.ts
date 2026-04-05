@@ -1,14 +1,12 @@
-import { auth } from '@cocostudio/database';
-import {
-  requestPasswordResetSchema,
-  resetPasswordSchema,
-  sendVerificationOtpSchema,
-  verifyEmailSchema,
-} from '@cocostudio/shared';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
+import { DomainError } from '../../../core/errors';
+import { RequestPasswordResetUseCase } from '../../../use-cases/otp/request-password-reset.use-case';
+import { ResetPasswordUseCase } from '../../../use-cases/otp/reset-password.use-case';
+import { SendVerificationOtpUseCase } from '../../../use-cases/otp/send-verification-otp.use-case';
+import { VerifyEmailUseCase } from '../../../use-cases/otp/verify-email.use-case';
 import { LoggerService } from '../../logger';
-import { BadRequestError, InternalServerError, ValidationError } from '../errors/auth.error';
+import { InternalServerError, toGraphQLError } from '../errors/auth.error';
 import {
   RequestPasswordResetInput,
   ResetPasswordInput,
@@ -18,22 +16,29 @@ import {
 
 @Resolver()
 export class OtpResolver {
-  constructor(private readonly logger: LoggerService) {
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly sendVerificationOtpUseCase: SendVerificationOtpUseCase,
+    private readonly verifyEmailUseCase: VerifyEmailUseCase,
+    private readonly requestPasswordResetUseCase: RequestPasswordResetUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
+  ) {
     this.logger.setContext('OtpResolver');
   }
 
-  private getBaseUrl(): string {
-    return process.env.BETTER_AUTH_URL || 'http://localhost:3001';
-  }
-
-  private buildHeaders(req: Request): Record<string, string> {
-    const baseUrl = this.getBaseUrl();
+  private extractHeaders(req: Request): Record<string, string> {
+    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3001';
     return {
-      'content-type': 'application/json',
-      origin: req.headers.origin || baseUrl,
-      'user-agent': req.headers['user-agent'] || 'GraphQL-Client',
+      origin: (req.headers.origin as string) || baseUrl,
+      'user-agent': (req.headers['user-agent'] as string) || 'GraphQL-Client',
       ...(req.headers.cookie ? { cookie: req.headers.cookie } : {}),
     };
+  }
+
+  private setCookies(res: Response, setCookieHeaders: string[]): void {
+    if (setCookieHeaders.length > 0) {
+      res.setHeader('set-cookie', setCookieHeaders);
+    }
   }
 
   @Mutation(() => Boolean, { description: 'Send a verification OTP to an email address' })
@@ -44,39 +49,16 @@ export class OtpResolver {
     this.logger.log('Send verification OTP attempt', { email: input.email, type: input.type });
 
     try {
-      const validated = sendVerificationOtpSchema.parse(input);
-
-      const baseUrl = this.getBaseUrl();
-      const mockRequest = new Request(`${baseUrl}/api/auth/email-otp/send-verification-otp`, {
-        method: 'POST',
-        headers: this.buildHeaders(context.req),
-        body: JSON.stringify({
-          email: validated.email,
-          type: validated.type,
-        }),
-      });
-
-      const result = await auth.handler(mockRequest);
-
-      if (result.status !== 200) {
-        const data = (await result.json()) as { message?: string };
-        throw new BadRequestError(data.message || 'Failed to send verification OTP');
-      }
+      const headers = this.extractHeaders(context.req);
+      await this.sendVerificationOtpUseCase.execute(
+        { email: input.email, type: input.type },
+        headers,
+      );
 
       this.logger.log('Verification OTP sent', { email: input.email });
       return true;
     } catch (error: unknown) {
-      if (error instanceof BadRequestError || error instanceof ValidationError) {
-        throw error;
-      }
-      const err = error as { name?: string; errors?: { path: string[]; message: string }[] };
-      if (err.name === 'ZodError' && err.errors) {
-        const fields: Record<string, string> = {};
-        for (const e of err.errors) {
-          fields[e.path.join('.')] = e.message;
-        }
-        throw new ValidationError('Invalid input', fields);
-      }
+      if (error instanceof DomainError) throw toGraphQLError(error);
       this.logger.error('Send verification OTP error', (error as Error).stack, {
         email: input.email,
       });
@@ -92,45 +74,18 @@ export class OtpResolver {
     this.logger.log('Verify email attempt', { email: input.email });
 
     try {
-      const validated = verifyEmailSchema.parse(input);
+      const headers = this.extractHeaders(context.req);
+      const result = await this.verifyEmailUseCase.execute(
+        { email: input.email, otp: input.otp },
+        headers,
+      );
 
-      const baseUrl = this.getBaseUrl();
-      const mockRequest = new Request(`${baseUrl}/api/auth/email-otp/verify-email`, {
-        method: 'POST',
-        headers: this.buildHeaders(context.req),
-        body: JSON.stringify({
-          email: validated.email,
-          otp: validated.otp,
-        }),
-      });
-
-      const result = await auth.handler(mockRequest);
-
-      // Forward any cookies (session may be updated)
-      const setCookieHeaders = result.headers.getSetCookie?.() || [];
-      if (setCookieHeaders.length > 0) {
-        context.res.setHeader('set-cookie', setCookieHeaders);
-      }
-
-      if (result.status !== 200) {
-        const data = (await result.json()) as { message?: string };
-        throw new BadRequestError(data.message || 'Invalid or expired OTP');
-      }
+      this.setCookies(context.res, result.setCookieHeaders);
 
       this.logger.log('Email verified', { email: input.email });
       return true;
     } catch (error: unknown) {
-      if (error instanceof BadRequestError || error instanceof ValidationError) {
-        throw error;
-      }
-      const err = error as { name?: string; errors?: { path: string[]; message: string }[] };
-      if (err.name === 'ZodError' && err.errors) {
-        const fields: Record<string, string> = {};
-        for (const e of err.errors) {
-          fields[e.path.join('.')] = e.message;
-        }
-        throw new ValidationError('Invalid input', fields);
-      }
+      if (error instanceof DomainError) throw toGraphQLError(error);
       this.logger.error('Verify email error', (error as Error).stack, {
         email: input.email,
       });
@@ -146,39 +101,14 @@ export class OtpResolver {
     this.logger.log('Password reset request', { email: input.email });
 
     try {
-      const validated = requestPasswordResetSchema.parse(input);
+      const headers = this.extractHeaders(context.req);
+      await this.requestPasswordResetUseCase.execute({ email: input.email }, headers);
 
-      const baseUrl = this.getBaseUrl();
-      const mockRequest = new Request(`${baseUrl}/api/auth/email-otp/forget-password`, {
-        method: 'POST',
-        headers: this.buildHeaders(context.req),
-        body: JSON.stringify({
-          email: validated.email,
-        }),
-      });
-
-      const result = await auth.handler(mockRequest);
-
-      if (result.status !== 200) {
-        // Don't reveal whether email exists — always return true
-        this.logger.warn('Password reset OTP send failed (silent)', { email: input.email });
-      }
-
+      this.logger.log('Password reset OTP sent', { email: input.email });
       // Always return true to prevent email enumeration
-      this.logger.log('Password reset OTP sent (or silently failed)', { email: input.email });
       return true;
     } catch (error: unknown) {
-      if (error instanceof ValidationError) {
-        throw error;
-      }
-      const err = error as { name?: string; errors?: { path: string[]; message: string }[] };
-      if (err.name === 'ZodError' && err.errors) {
-        const fields: Record<string, string> = {};
-        for (const e of err.errors) {
-          fields[e.path.join('.')] = e.message;
-        }
-        throw new ValidationError('Invalid input', fields);
-      }
+      if (error instanceof DomainError) throw toGraphQLError(error);
       this.logger.error('Password reset request error', (error as Error).stack, {
         email: input.email,
       });
@@ -195,40 +125,16 @@ export class OtpResolver {
     this.logger.log('Reset password attempt', { email: input.email });
 
     try {
-      const validated = resetPasswordSchema.parse(input);
-
-      const baseUrl = this.getBaseUrl();
-      const mockRequest = new Request(`${baseUrl}/api/auth/email-otp/reset-password`, {
-        method: 'POST',
-        headers: this.buildHeaders(context.req),
-        body: JSON.stringify({
-          email: validated.email,
-          otp: validated.otp,
-          password: validated.newPassword,
-        }),
-      });
-
-      const result = await auth.handler(mockRequest);
-
-      if (result.status !== 200) {
-        const data = (await result.json()) as { message?: string };
-        throw new BadRequestError(data.message || 'Failed to reset password');
-      }
+      const headers = this.extractHeaders(context.req);
+      await this.resetPasswordUseCase.execute(
+        { email: input.email, otp: input.otp, newPassword: input.newPassword },
+        headers,
+      );
 
       this.logger.log('Password reset successful', { email: input.email });
       return true;
     } catch (error: unknown) {
-      if (error instanceof BadRequestError || error instanceof ValidationError) {
-        throw error;
-      }
-      const err = error as { name?: string; errors?: { path: string[]; message: string }[] };
-      if (err.name === 'ZodError' && err.errors) {
-        const fields: Record<string, string> = {};
-        for (const e of err.errors) {
-          fields[e.path.join('.')] = e.message;
-        }
-        throw new ValidationError('Invalid input', fields);
-      }
+      if (error instanceof DomainError) throw toGraphQLError(error);
       this.logger.error('Reset password error', (error as Error).stack, {
         email: input.email,
       });

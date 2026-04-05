@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { CustomButton } from '@/components/ui/CustomButton';
 import { UPDATE_COLLECTION } from '@/lib/graphql/collections';
 import { graphqlClient } from '@/lib/graphql-client';
-import { Collection, UpdateCollectionInput } from '../types';
+import type { Collection, UpdateCollectionInput } from '../types';
 
 // Use Zod schema for validation
 const updateCollectionSchema = z.object({
@@ -54,17 +54,15 @@ export function EditCollectionModal({ collection, onSuccess }: EditCollectionMod
         input,
       });
 
-      console.log('Collection updated');
-
       // Reset form, refresh and close
       setErrors({});
       toast.success('Collection updated successfully');
       onSuccess?.();
       close?.();
-    } catch (err: any) {
-      console.error('Update collection error:', err);
+    } catch (err: unknown) {
+      const gqlErr = err as { response?: { errors?: { message: string }[] }; message?: string };
       const errorMessage =
-        err?.response?.errors?.[0]?.message || err.message || 'Failed to update collection';
+        gqlErr?.response?.errors?.[0]?.message || gqlErr?.message || 'Failed to update collection';
       setErrors({ form: errorMessage });
       toast.danger('Failed to update collection');
     } finally {

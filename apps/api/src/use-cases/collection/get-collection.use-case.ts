@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IDataServices } from '../../core';
 import type { Collection } from '../../core/entities/collection.entity';
-import { ForbiddenError, NotFoundError } from '../../frameworks/graphql/errors/auth.error';
+import { ForbiddenError, NotFoundError } from '../../core/errors';
 
 @Injectable()
 export class GetCollectionUseCase {

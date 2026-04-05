@@ -2,25 +2,13 @@
 
 import { Input, Label, Modal, TextArea, toast } from '@heroui/react';
 import { clsx } from 'clsx';
-import { gql } from 'graphql-request';
-import { Add, Folder, FolderOpen, TextalignLeft, Warning2 } from 'iconsax-reactjs';
+import { Add, Warning2 } from 'iconsax-reactjs';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { z } from 'zod';
 import { CustomButton } from '@/components/ui/CustomButton';
+import { CREATE_COLLECTION } from '@/lib/graphql/collections';
 import { graphqlClient } from '@/lib/graphql-client';
-
-// GraphQL mutation
-const CREATE_COLLECTION = gql`
-  mutation CreateCollection($input: CreateCollectionInput!) {
-    createCollection(input: $input) {
-      id
-      name
-      description
-      createdAt
-    }
-  }
-`;
 
 // --- SEGURIDAD ---
 const SAFE_TEXT_REGEX = /^[a-zA-Z0-9\s\u00C0-\u00FF\-_.,!?&'@]*$/;
@@ -78,8 +66,9 @@ export function CreateCollectionModal({ onSuccess }: CreateCollectionModalProps)
       router.refresh();
       onSuccess?.();
       closeFn();
-    } catch (err: any) {
-      const errorMessage = err?.response?.errors?.[0]?.message || 'Failed to create collection';
+    } catch (err: unknown) {
+      const gqlErr = err as { response?: { errors?: { message: string }[] } };
+      const errorMessage = gqlErr?.response?.errors?.[0]?.message || 'Failed to create collection';
       setErrors({ form: errorMessage });
       toast.danger(errorMessage);
     } finally {
@@ -144,6 +133,7 @@ export function CreateCollectionModal({ onSuccess }: CreateCollectionModalProps)
                         Description
                       </Label>
                       <TextArea
+                        name="description"
                         placeholder="Optional description..."
                         variant="primary"
                         disabled={loading}

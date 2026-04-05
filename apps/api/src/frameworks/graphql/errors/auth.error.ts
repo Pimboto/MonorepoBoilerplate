@@ -1,4 +1,36 @@
 import { GraphQLError } from 'graphql';
+import {
+  AuthenticationError as DomainAuthenticationError,
+  BadRequestError as DomainBadRequestError,
+  type DomainError,
+  ForbiddenError as DomainForbiddenError,
+  InternalServerError as DomainInternalServerError,
+  NotFoundError as DomainNotFoundError,
+  ValidationError as DomainValidationError,
+} from '../../../core/errors';
+
+/**
+ * Converts a DomainError into a GraphQLError with proper extensions.
+ * Use this in GraphQL resolvers to translate domain-layer errors
+ * into the format Apollo Server expects.
+ */
+export function toGraphQLError(error: DomainError): GraphQLError {
+  return new GraphQLError(error.message, {
+    extensions: {
+      code: error.code,
+      http: { status: error.statusCode },
+      ...(error.details ? { details: error.details } : {}),
+    },
+  });
+}
+
+/**
+ * GraphQL-specific error classes.
+ *
+ * These extend GraphQLError so Apollo Server serialises them correctly.
+ * Resolver code that already imports from this file keeps working
+ * without any changes.
+ */
 
 export class AuthenticationError extends GraphQLError {
   constructor(message: string) {
@@ -8,6 +40,10 @@ export class AuthenticationError extends GraphQLError {
         http: { status: 401 },
       },
     });
+  }
+
+  static fromDomain(error: DomainAuthenticationError): AuthenticationError {
+    return new AuthenticationError(error.message);
   }
 }
 
@@ -21,6 +57,10 @@ export class ValidationError extends GraphQLError {
       },
     });
   }
+
+  static fromDomain(error: DomainValidationError): ValidationError {
+    return new ValidationError(error.message, error.fields);
+  }
 }
 
 export class ForbiddenError extends GraphQLError {
@@ -31,6 +71,10 @@ export class ForbiddenError extends GraphQLError {
         http: { status: 403 },
       },
     });
+  }
+
+  static fromDomain(error: DomainForbiddenError): ForbiddenError {
+    return new ForbiddenError(error.message);
   }
 }
 
@@ -44,6 +88,10 @@ export class BadRequestError extends GraphQLError {
       },
     });
   }
+
+  static fromDomain(error: DomainBadRequestError): BadRequestError {
+    return new BadRequestError(error.message, error.details);
+  }
 }
 
 export class NotFoundError extends GraphQLError {
@@ -55,6 +103,10 @@ export class NotFoundError extends GraphQLError {
       },
     });
   }
+
+  static fromDomain(error: DomainNotFoundError): NotFoundError {
+    return new NotFoundError(error.message);
+  }
 }
 
 export class InternalServerError extends GraphQLError {
@@ -65,5 +117,9 @@ export class InternalServerError extends GraphQLError {
         http: { status: 500 },
       },
     });
+  }
+
+  static fromDomain(error: DomainInternalServerError): InternalServerError {
+    return new InternalServerError(error.message);
   }
 }

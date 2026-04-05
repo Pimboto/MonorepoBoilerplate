@@ -5,13 +5,12 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import {
   CREATE_COLLECTION,
-  CREATE_FILE,
   DELETE_COLLECTION,
-  DELETE_FILE,
   GET_COLLECTION,
   GET_COLLECTIONS,
-} from './api/graphql';
-import { CreateCollectionInput, CreateFileInput } from './types';
+} from '@/lib/graphql/collections';
+import { CREATE_FILE, DELETE_FILE } from '@/lib/graphql/files';
+import type { Collection, CreateCollectionInput, CreateFileInput } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const endpoint = `${API_URL}/graphql`;
@@ -19,7 +18,6 @@ const endpoint = `${API_URL}/graphql`;
 const getClient = async () => {
   const cookieStore = await cookies();
 
-  // Properly format cookies for the Cookie header
   const cookieHeader = cookieStore
     .getAll()
     .map(cookie => `${cookie.name}=${cookie.value}`)
@@ -29,28 +27,26 @@ const getClient = async () => {
     headers: {
       Cookie: cookieHeader,
     },
-    credentials: 'include', // Important for cookie-based auth
+    credentials: 'include',
   });
 };
 
-export async function getCollections() {
+export async function getCollections(): Promise<Collection[]> {
   const client = await getClient();
   try {
-    const data: any = await client.request(GET_COLLECTIONS);
+    const data = await client.request<{ collections: Collection[] }>(GET_COLLECTIONS);
     return data.collections;
-  } catch (error) {
-    console.error('Failed to fetch collections', error);
+  } catch {
     return [];
   }
 }
 
-export async function getCollection(id: string) {
+export async function getCollection(id: string): Promise<Collection | null> {
   const client = await getClient();
   try {
-    const data: any = await client.request(GET_COLLECTION, { id });
+    const data = await client.request<{ collection: Collection }>(GET_COLLECTION, { id });
     return data.collection;
-  } catch (error) {
-    console.error(`Failed to fetch collection ${id}`, error);
+  } catch {
     return null;
   }
 }
@@ -61,9 +57,8 @@ export async function createCollection(input: CreateCollectionInput) {
     await client.request(CREATE_COLLECTION, { input });
     revalidatePath('/app/collections');
     return { success: true };
-  } catch (error) {
-    console.error('Failed to create collection', error);
-    return { success: false, error };
+  } catch {
+    return { success: false };
   }
 }
 
@@ -73,9 +68,8 @@ export async function deleteCollection(id: string) {
     await client.request(DELETE_COLLECTION, { id });
     revalidatePath('/app/collections');
     return { success: true };
-  } catch (error) {
-    console.error('Failed to delete collection', error);
-    return { success: false, error };
+  } catch {
+    return { success: false };
   }
 }
 
@@ -85,9 +79,8 @@ export async function saveFile(input: CreateFileInput) {
     await client.request(CREATE_FILE, { input });
     revalidatePath(`/app/collections/${input.collectionId}`);
     return { success: true };
-  } catch (error) {
-    console.error('Failed to save file', error);
-    return { success: false, error };
+  } catch {
+    return { success: false };
   }
 }
 
@@ -97,8 +90,7 @@ export async function deleteFile(id: string, collectionId: string) {
     await client.request(DELETE_FILE, { id });
     revalidatePath(`/app/collections/${collectionId}`);
     return { success: true };
-  } catch (error) {
-    console.error('Failed to delete file', error);
-    return { success: false, error };
+  } catch {
+    return { success: false };
   }
 }

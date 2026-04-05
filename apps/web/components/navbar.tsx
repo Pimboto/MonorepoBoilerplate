@@ -16,7 +16,7 @@ export const Navbar = () => {
           {/* Brand + Nav Links */}
           <div className="flex items-center gap-8">
             <NextLink className="flex items-center gap-2" href="/">
-              <p className="font-bold text-inherit">ACME</p>
+              <p className="font-bold text-inherit">{siteConfig.name}</p>
             </NextLink>
 
             <ul className="hidden lg:flex gap-6 items-center">

@@ -1,4 +1,5 @@
 import { join } from 'node:path';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { config } from 'dotenv';
 import { Logger } from 'nestjs-pino';
@@ -17,21 +18,38 @@ async function bootstrap() {
   // Use Pino logger
   app.useLogger(app.get(Logger));
 
-  // Register GraphQL logging interceptor
-  const loggerService = app.get(LoggerService);
+  // Register global validation pipe (activates class-validator decorators)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  // Register GraphQL logging interceptor (resolve() needed for TRANSIENT-scoped providers)
+  const loggerService = await app.resolve(LoggerService);
   app.useGlobalInterceptors(new GqlLoggingInterceptor(loggerService));
 
-  // Enable CORS for GraphQL and frontend
-  app.enableCors({
-    origin: [
-      'http://localhost:3000', // Frontend (Next.js)
-      'http://localhost:3001', // Backend (NestJS)
-      process.env.BETTER_AUTH_URL || 'http://localhost:3001',
+  // Enable CORS — restrict Apollo Sandbox to development only
+  const isProd = process.env.NODE_ENV === 'production';
+  const corsOrigins: string[] = [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    process.env.BETTER_AUTH_URL || 'http://localhost:3001',
+  ];
+  if (!isProd) {
+    corsOrigins.push(
+      'http://localhost:3000',
+      'http://localhost:3001',
       'https://studio.apollographql.com',
       'https://sandbox.embed.apollographql.com',
-    ],
+    );
+  }
+
+  app.enableCors({
+    origin: [...new Set(corsOrigins)],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Accept'],
   });
 

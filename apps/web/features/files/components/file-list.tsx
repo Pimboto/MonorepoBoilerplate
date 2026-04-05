@@ -5,7 +5,7 @@ import { Document, Eye, Trash } from 'iconsax-reactjs';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { CustomButton } from '@/components/ui/CustomButton';
-import { FileItem } from '@/features/collections/types';
+import type { FileItem } from '@/features/collections/types';
 import { DELETE_FILE } from '@/lib/graphql/files';
 import { graphqlClient } from '@/lib/graphql-client';
 
@@ -24,8 +24,7 @@ export function FileCard({ file }: FileCardProps) {
       await graphqlClient.request(DELETE_FILE, { id: file.id });
       toast.success('File deleted successfully');
       router.refresh();
-    } catch (error) {
-      console.error('Delete file error:', error);
+    } catch {
       toast.danger('Failed to delete file');
     } finally {
       setDeleting(false);

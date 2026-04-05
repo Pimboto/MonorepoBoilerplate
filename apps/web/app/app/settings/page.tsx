@@ -1,8 +1,17 @@
 'use client';
 
-import { Avatar, Card, Input, Spinner, toast, Chip } from '@heroui/react';
+import { Avatar, Card, Chip, Input, Spinner, toast } from '@heroui/react';
 // Añadimos Monitor, Mobile, Global para la mejora visual
-import { Camera, Eye, EyeSlash, LogoutCurve, Trash, Monitor, Mobile, Global } from 'iconsax-reactjs';
+import {
+  Camera,
+  Eye,
+  EyeSlash,
+  Global,
+  LogoutCurve,
+  Mobile,
+  Monitor,
+  Trash,
+} from 'iconsax-reactjs';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ThemeSwitch } from '@/components/theme-switch';
@@ -49,9 +58,13 @@ function getSessionDetails(uaString: string | null) {
   // Detectar OS
   if (ua.includes('macintosh') || ua.includes('mac os')) os = 'macOS';
   else if (ua.includes('windows')) os = 'Windows';
-  else if (ua.includes('android')) { os = 'Android'; type = 'mobile'; }
-  else if (ua.includes('iphone') || ua.includes('ipad')) { os = 'iOS'; type = 'mobile'; }
-  else if (ua.includes('linux')) os = 'Linux';
+  else if (ua.includes('android')) {
+    os = 'Android';
+    type = 'mobile';
+  } else if (ua.includes('iphone') || ua.includes('ipad')) {
+    os = 'iOS';
+    type = 'mobile';
+  } else if (ua.includes('linux')) os = 'Linux';
 
   // Detectar Navegador
   let browser = 'Browser';
@@ -388,15 +401,19 @@ export default function SettingsPage() {
                 return (
                   <div
                     key={session.id}
-                    className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${isCurrent
+                    className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                      isCurrent
                         ? 'bg-primary/5 border-primary/20'
                         : 'bg-default-50 border-border/50 hover:border-default-300'
-                      }`}
+                    }`}
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       {/* Icono diferenciado */}
-                      <div className={`p-2 rounded-lg flex items-center justify-center shrink-0 ${isCurrent ? 'bg-primary' : 'bg-default-200 text-default-500'
-                        }`}>
+                      <div
+                        className={`p-2 rounded-lg flex items-center justify-center shrink-0 ${
+                          isCurrent ? 'bg-primary' : 'bg-default-200 text-default-500'
+                        }`}
+                      >
                         <DeviceIcon size={20} variant="Bold" />
                       </div>
 
@@ -406,7 +423,12 @@ export default function SettingsPage() {
                             {deviceName}
                           </p>
                           {isCurrent && (
-                            <Chip size="sm" color="default" variant="primary" className="h-5 px-1 text-[10px] font-bold uppercase">
+                            <Chip
+                              size="sm"
+                              color="default"
+                              variant="primary"
+                              className="h-5 px-1 text-[10px] font-bold uppercase"
+                            >
                               Current
                             </Chip>
                           )}

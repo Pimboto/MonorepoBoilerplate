@@ -1,5 +1,5 @@
 // logger.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 
 interface LogContext {
@@ -7,7 +7,7 @@ interface LogContext {
   [key: string]: unknown;
 }
 
-@Injectable()
+@Injectable({ scope: Scope.TRANSIENT })
 export class LoggerService {
   constructor(private readonly logger: PinoLogger) {}
 
@@ -37,12 +37,11 @@ export class LoggerService {
     this.logger.debug(context ?? {}, message);
   }
 
-  // Para anclar contexto de clase (Nest style)
+  // Anclar contexto de clase (Nest style) — safe because each instance is TRANSIENT
   setContext(context: string): void {
     this.logger.setContext(context);
   }
 
-  // Ejemplo de helper de dominio
   logUserAction(action: string, payload: Record<string, unknown> = {}): void {
     this.logger.info(
       {

@@ -45,8 +45,7 @@ export function CollectionUploader({ collectionId }: CollectionUploaderProps) {
           toast.success('Files uploaded successfully');
           setUploading(false);
           setProgress(0);
-        } catch (error) {
-          console.error('File upload error:', error);
+        } catch {
           toast.danger('Failed to save file metadata');
           setUploading(false);
         }

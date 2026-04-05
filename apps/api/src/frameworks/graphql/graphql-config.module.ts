@@ -3,7 +3,12 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { Inject, Module, OnModuleInit } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
+import type { Request, Response } from 'express';
 import { LoggerModule, LoggerService } from '../logger';
+import { createDepthLimitRule } from './validation/depth-limit.rule';
+
+/** Maximum allowed query nesting depth (Collection -> Files is ~2 levels). */
+const MAX_QUERY_DEPTH = 5;
 
 @Module({
   imports: [
@@ -25,24 +30,27 @@ import { LoggerModule, LoggerService } from '../logger';
         }),
       ],
 
-      // Introspection (needed for Sandbox)
-      introspection: true, // In production, consider limiting this or using auth
+      // Introspection — disabled in production to prevent schema discovery
+      introspection: process.env.NODE_ENV !== 'production',
+
+      // Depth limiting — prevent deeply nested queries (DoS protection)
+      validationRules: [createDepthLimitRule(MAX_QUERY_DEPTH)],
 
       // Context - Pass req/res for AuthGuard reading cookies/headers
-      context: ({ req, res }) => ({ req, res }),
+      context: ({ req, res }: { req: Request; res: Response }) => ({ req, res }),
 
-      // Error formatting
+      // Error formatting — spec-compliant (code inside extensions)
       formatError: error => {
         const isDevelopment = process.env.NODE_ENV === 'development';
 
         return {
           message: error.message,
-          code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
-          ...(isDevelopment && {
-            locations: error.locations,
-            path: error.path,
-            extensions: error.extensions,
-          }),
+          locations: error.locations,
+          path: error.path,
+          extensions: {
+            code: error.extensions?.code || 'INTERNAL_SERVER_ERROR',
+            ...(isDevelopment && error.extensions ? { ...error.extensions } : {}),
+          },
         };
       },
     }),
@@ -55,10 +63,12 @@ export class GraphQLConfigModule implements OnModuleInit {
   }
 
   onModuleInit(): void {
+    const introspectionEnabled = process.env.NODE_ENV !== 'production';
     this.logger.log('GraphQL module initialized', {
       endpoint: '/graphql',
       sandbox: 'enabled',
-      introspection: true,
+      introspection: introspectionEnabled,
+      maxQueryDepth: MAX_QUERY_DEPTH,
     });
   }
 }

@@ -52,16 +52,20 @@ function getPrismaClient(): PrismaClient {
   return globalForPrisma.prisma;
 }
 
-// Export getters that lazily initialize
+// Export getters that lazily initialize — bind methods to preserve `this`
 export const pool = new Proxy({} as Pool, {
   get(_, prop) {
-    return getPool()[prop as keyof Pool];
+    const target = getPool();
+    const value = target[prop as keyof Pool];
+    return typeof value === 'function' ? (value as Function).bind(target) : value;
   },
 });
 
 export const prisma = new Proxy({} as PrismaClient, {
   get(_, prop) {
-    return getPrismaClient()[prop as keyof PrismaClient];
+    const target = getPrismaClient();
+    const value = target[prop as keyof PrismaClient];
+    return typeof value === 'function' ? (value as Function).bind(target) : value;
   },
 });
 
@@ -88,16 +92,26 @@ export const auth = betterAuth({
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
         const subjects: Record<string, string> = {
-          'email-verification': 'Verify your email - StarStudio',
-          'forget-password': 'Reset your password - StarStudio',
-          'sign-in': 'Sign in to StarStudio',
+          'email-verification': 'Verify your email - CocoStudio',
+          'forget-password': 'Reset your password - CocoStudio',
+          'sign-in': 'Sign in to CocoStudio',
         };
-        await getResend().emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-          to: email,
-          subject: subjects[type] || 'StarStudio Verification',
-          html: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`,
-        });
+        try {
+          const result = await getResend().emails.send({
+            from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+            to: email,
+            subject: subjects[type] || 'CocoStudio Verification',
+            html: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`,
+          });
+          if (result.error) {
+            console.error('[Resend] Email send error:', JSON.stringify(result.error));
+            throw new Error(`Resend error: ${result.error.message}`);
+          }
+          console.log('[Resend] Email sent successfully', { to: email, type, id: result.data?.id });
+        } catch (error) {
+          console.error('[Resend] Failed to send email:', error);
+          throw error;
+        }
       },
       sendVerificationOnSignUp: true,
       otpLength: 6,
@@ -106,8 +120,8 @@ export const auth = betterAuth({
   ],
   baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3001',
   trustedOrigins: [
-    'http://localhost:3000', // Frontend (Next.js)
-    'http://localhost:3001', // Backend (NestJS)
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    process.env.BETTER_AUTH_URL || 'http://localhost:3001',
   ],
 });
 

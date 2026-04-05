@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar, Tooltip } from '@heroui/react';
-import { ArrowDown2, ArrowLeft2, Bag, Box, Home2, Setting2, User } from 'iconsax-reactjs';
+import { ArrowDown2, ArrowLeft2, Gallery, Home2, Setting2 } from 'iconsax-reactjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
@@ -9,11 +9,29 @@ import { CustomButton } from '@/components/ui/CustomButton';
 import { siteConfig } from '@/config/site';
 import { useAuth } from '@/context/auth-context';
 
-const iconMap: Record<string, any> = {
+interface SidebarSubItem {
+  label: string;
+  href: string;
+  badge?: string;
+}
+
+interface SidebarItem {
+  label: string;
+  href: string;
+  icon: string;
+  items?: SidebarSubItem[];
+}
+
+interface NavItemProps {
+  item: SidebarItem;
+  icon: React.ComponentType<{ size?: number | string; variant?: string }>;
+  isActive: boolean;
+  isCollapsed: boolean;
+}
+
+const iconMap: Record<string, React.ComponentType<{ size?: number | string; variant?: string }>> = {
   Home: Home2,
-  Box: Box,
-  User: User,
-  Bag: Bag,
+  Gallery: Gallery,
   Setting: Setting2,
 };
 
@@ -32,14 +50,18 @@ export const Sidebar = () => {
   const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const checkActive = (item: any) => {
-    return pathname === item.href || item.items?.some((child: any) => checkActive(child));
+  const checkActive = (item: SidebarItem | SidebarSubItem) => {
+    return (
+      pathname === item.href ||
+      ('items' in item && item.items?.some((child: SidebarSubItem) => checkActive(child)))
+    );
   };
 
   return (
     <aside
-      className={`relative flex flex-col h-screen bg-content1/50 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'
-        }`}
+      className={`relative flex flex-col h-screen bg-content1/50 transition-all duration-300 ${
+        isCollapsed ? 'w-20' : 'w-64'
+      }`}
       style={{
         borderRight: '1px solid transparent',
         borderImage: 'linear-gradient(to bottom, transparent, var(--color-border), transparent) 1',
@@ -60,7 +82,7 @@ export const Sidebar = () => {
           {!isCollapsed && (
             <div className="flex flex-col">
               <span className="font-bold text-xl tracking-tight text-foreground leading-none">
-                StarStudio
+                CocoStudio
               </span>
               <span className="text-[10px] text-muted-foreground font-medium tracking-widest uppercase mt-1">
                 Workspace
@@ -85,8 +107,7 @@ export const Sidebar = () => {
         </button>
       </div>
 
-              <div className="absolute right-0 top-0 bottom-0 w-full h-full bg-gradient-to-b from-transparent via-border to-transparent opacity-30" />
-
+      <div className="absolute right-0 top-0 bottom-0 w-full h-full bg-gradient-to-b from-transparent via-border to-transparent opacity-30" />
 
       <nav className="flex-1 flex flex-col gap-2 px-4 overflow-y-auto scrollbar-hide">
         {siteConfig.sidebarItems.map(item => (
@@ -144,7 +165,7 @@ export const Sidebar = () => {
   );
 };
 
-const NavItem = ({ item, icon: Icon, isActive, isCollapsed }: any) => {
+const NavItem = ({ item, icon: Icon, isActive, isCollapsed }: NavItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   React.useEffect(() => {
@@ -174,7 +195,7 @@ const NavItem = ({ item, icon: Icon, isActive, isCollapsed }: any) => {
             <p className="px-2 py-1 text-xs font-bold text-primary uppercase tracking-wider">
               {item.label}
             </p>
-            {item.items.map((subItem: any) => (
+            {item.items.map((subItem: SidebarSubItem) => (
               <Link key={subItem.href} href={subItem.href}>
                 <div className="px-2 py-1.5 hover:bg-content2 rounded-md text-sm transition-colors cursor-pointer">
                   {subItem.label}
@@ -208,7 +229,7 @@ const NavItem = ({ item, icon: Icon, isActive, isCollapsed }: any) => {
 
         {isExpanded && (
           <div className="flex flex-col gap-1 pl-4 ml-3 border-l border-divider/50 animate-appearance-in">
-            {item.items.map((subItem: any) => (
+            {item.items.map((subItem: SidebarSubItem) => (
               <Link key={subItem.href} href={subItem.href} className="w-full">
                 <CustomButton
                   variant="ghost"

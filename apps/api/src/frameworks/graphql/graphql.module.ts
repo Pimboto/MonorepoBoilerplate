@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { IStorageService } from '../../core/abstracts/storage-service.abstract';
+import { SignInUseCase, SignOutUseCase, SignUpUseCase } from '../../use-cases/auth';
 import {
   CreateCollectionUseCase,
   DeleteCollectionUseCase,
@@ -12,6 +13,19 @@ import {
   DeleteFileUseCase,
   GetFilesByCollectionUseCase,
 } from '../../use-cases/file';
+import {
+  RequestPasswordResetUseCase,
+  ResetPasswordUseCase,
+  SendVerificationOtpUseCase,
+  VerifyEmailUseCase,
+} from '../../use-cases/otp';
+import {
+  ChangePasswordUseCase,
+  ListSessionsUseCase,
+  RevokeSessionUseCase,
+  UpdateProfileUseCase,
+} from '../../use-cases/profile';
+import { AuthModule } from '../auth/auth.module';
 import { LoggerService } from '../logger';
 import { UploadThingStorageService } from '../storage/uploadthing-storage.service';
 import { GraphQLConfigModule } from './graphql-config.module';
@@ -23,7 +37,7 @@ import { ProfileResolver } from './resolvers/profile.resolver';
 import { UserResolver } from './resolvers/user.resolver';
 
 @Module({
-  imports: [GraphQLConfigModule],
+  imports: [GraphQLConfigModule, AuthModule],
   providers: [
     UserResolver,
     AuthResolver,
@@ -33,6 +47,9 @@ import { UserResolver } from './resolvers/user.resolver';
     ProfileResolver,
     LoggerService,
     { provide: IStorageService, useClass: UploadThingStorageService },
+    SignUpUseCase,
+    SignInUseCase,
+    SignOutUseCase,
     CreateCollectionUseCase,
     DeleteCollectionUseCase,
     GetCollectionUseCase,
@@ -41,6 +58,14 @@ import { UserResolver } from './resolvers/user.resolver';
     CreateFileUseCase,
     DeleteFileUseCase,
     GetFilesByCollectionUseCase,
+    SendVerificationOtpUseCase,
+    VerifyEmailUseCase,
+    RequestPasswordResetUseCase,
+    ResetPasswordUseCase,
+    ChangePasswordUseCase,
+    ListSessionsUseCase,
+    RevokeSessionUseCase,
+    UpdateProfileUseCase,
   ],
 })
 export class GraphQLApiModule {}

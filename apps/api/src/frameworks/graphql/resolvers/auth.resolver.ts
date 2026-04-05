@@ -1,23 +1,40 @@
-import { auth } from '@cocostudio/database';
-import { signInSchema, signUpSchema } from '@cocostudio/shared';
 import { UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
+import { DomainError } from '../../../core/errors';
+import { SignInUseCase } from '../../../use-cases/auth/sign-in.use-case';
+import { SignOutUseCase } from '../../../use-cases/auth/sign-out.use-case';
+import { SignUpUseCase } from '../../../use-cases/auth/sign-up.use-case';
 import { AuthGuard } from '../../auth/auth.guard';
 import { LoggerService } from '../../logger';
-import {
-  AuthenticationError,
-  BadRequestError,
-  InternalServerError,
-  ValidationError,
-} from '../errors/auth.error';
+import { InternalServerError, toGraphQLError } from '../errors/auth.error';
 import { SignInInput, SignUpInput } from '../types/auth.input';
 import { AuthPayload } from '../types/auth.payload';
 
 @Resolver()
 export class AuthResolver {
-  constructor(private readonly logger: LoggerService) {
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly signUpUseCase: SignUpUseCase,
+    private readonly signInUseCase: SignInUseCase,
+    private readonly signOutUseCase: SignOutUseCase,
+  ) {
     this.logger.setContext('AuthResolver');
+  }
+
+  private extractHeaders(req: Request): Record<string, string> {
+    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3001';
+    return {
+      origin: (req.headers.origin as string) || baseUrl,
+      'user-agent': (req.headers['user-agent'] as string) || 'GraphQL-Client',
+      ...(req.headers.cookie ? { cookie: req.headers.cookie } : {}),
+    };
+  }
+
+  private setCookies(res: Response, setCookieHeaders: string[]): void {
+    if (setCookieHeaders.length > 0) {
+      res.setHeader('set-cookie', setCookieHeaders);
+    }
   }
 
   @Mutation(() => AuthPayload, { description: 'Sign up a new user' })
@@ -28,103 +45,25 @@ export class AuthResolver {
     this.logger.log('Sign up attempt', { email: input.email });
 
     try {
-      // Validate input with Zod schema
-      const validatedInput = signUpSchema.parse({
-        email: input.email,
-        password: input.password,
-        name: input.name,
-      });
+      const headers = this.extractHeaders(context.req);
+      const result = await this.signUpUseCase.execute(
+        { email: input.email, password: input.password, name: input.name },
+        headers,
+      );
 
-      // Create a proper Request-like object for Better Auth
-      const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3001';
-      const mockRequest = new Request(`${baseUrl}/api/auth/sign-up/email`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          origin: context.req.headers.origin || baseUrl,
-          'user-agent': context.req.headers['user-agent'] || 'GraphQL-Client',
-          ...(context.req.headers.cookie ? { cookie: context.req.headers.cookie } : {}),
-        },
-        body: JSON.stringify(validatedInput),
-      });
+      this.setCookies(context.res, result.setCookieHeaders);
 
-      // Call Better Auth handler directly
-      const result = await auth.handler(mockRequest);
-
-      // Extract response data
-      const responseText = await result.text();
-      const data = JSON.parse(responseText);
-
-      // Set cookies from Better Auth response to GraphQL response
-      const setCookieHeaders = result.headers.getSetCookie?.() || [];
-      if (setCookieHeaders.length > 0) {
-        context.res.setHeader('set-cookie', setCookieHeaders);
-      }
-
-      // Handle errors
-      if (result.status !== 200) {
-        this.logger.warn('Sign up failed', {
-          email: input.email,
-          status: result.status,
-          error: data.message,
-        });
-
-        // Check for specific error cases
-        const errorMessage = data.message || 'Sign up failed';
-        if (
-          errorMessage.toLowerCase().includes('already exists') ||
-          errorMessage.toLowerCase().includes('already registered')
-        ) {
-          throw new BadRequestError('Email already registered', { email: input.email });
-        }
-
-        throw new BadRequestError(errorMessage);
-      }
-
-      this.logger.log('Sign up successful', {
-        userId: data.user?.id,
-        email: input.email,
-      });
-
-      // Get session to return complete auth payload
-      const session = await auth.api.getSession({
-        headers: {
-          cookie: setCookieHeaders.join('; '),
-        } as any,
-      });
+      this.logger.log('Sign up successful', { email: input.email });
 
       return {
-        user: data.user,
-        session: session?.session || ({} as any),
+        user: result.user,
+        session: result.session,
         message: 'Sign up successful',
-      };
-    } catch (error: any) {
-      // Handle validation errors
-      if (error.name === 'ZodError') {
-        this.logger.warn('Sign up validation failed', {
-          email: input.email,
-          errors: error.errors,
-        });
-        const fields = error.errors.reduce((acc: any, err: any) => {
-          acc[err.path.join('.')] = err.message;
-          return acc;
-        }, {});
-        throw new ValidationError('Invalid input', fields);
-      }
-
-      // Re-throw known errors
-      if (
-        error instanceof AuthenticationError ||
-        error instanceof ValidationError ||
-        error instanceof BadRequestError
-      ) {
-        throw error;
-      }
-
-      // Log and throw unknown errors
-      this.logger.error('Sign up error', error.stack, {
+      } as AuthPayload;
+    } catch (error: unknown) {
+      if (error instanceof DomainError) throw toGraphQLError(error);
+      this.logger.error('Sign up error', (error as Error).stack, {
         email: input.email,
-        error: error.message,
       });
       throw new InternalServerError('An unexpected error occurred during sign up');
     }
@@ -138,130 +77,49 @@ export class AuthResolver {
     this.logger.log('Sign in attempt', { email: input.email });
 
     try {
-      // Validate input with Zod schema
-      const validatedInput = signInSchema.parse({
-        email: input.email,
-        password: input.password,
-      });
+      const headers = this.extractHeaders(context.req);
+      const result = await this.signInUseCase.execute(
+        { email: input.email, password: input.password },
+        headers,
+      );
 
-      // Create a proper Request-like object for Better Auth
-      const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3001';
-      const mockRequest = new Request(`${baseUrl}/api/auth/sign-in/email`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          origin: context.req.headers.origin || baseUrl,
-          'user-agent': context.req.headers['user-agent'] || 'GraphQL-Client',
-          ...(context.req.headers.cookie ? { cookie: context.req.headers.cookie } : {}),
-        },
-        body: JSON.stringify(validatedInput),
-      });
+      this.setCookies(context.res, result.setCookieHeaders);
 
-      // Call Better Auth handler directly
-      const result = await auth.handler(mockRequest);
-
-      // Extract response data
-      const responseText = await result.text();
-      const data = JSON.parse(responseText);
-
-      // Set cookies from Better Auth response to GraphQL response
-      const setCookieHeaders = result.headers.getSetCookie?.() || [];
-      if (setCookieHeaders.length > 0) {
-        context.res.setHeader('set-cookie', setCookieHeaders);
-      }
-
-      // Handle errors
-      if (result.status !== 200) {
-        this.logger.warn('Sign in failed', {
-          email: input.email,
-          status: result.status,
-          error: data.message,
-        });
-        throw new AuthenticationError(data.message || 'Invalid credentials');
-      }
-
-      this.logger.log('Sign in successful', {
-        userId: data.user?.id,
-        email: input.email,
-      });
-
-      // Get session to return complete auth payload
-      const session = await auth.api.getSession({
-        headers: {
-          cookie: setCookieHeaders.join('; '),
-        } as any,
-      });
+      this.logger.log('Sign in successful', { email: input.email });
 
       return {
-        user: data.user,
-        session: session?.session || ({} as any),
+        user: result.user,
+        session: result.session,
         message: 'Sign in successful',
-      };
-    } catch (error: any) {
-      // Handle validation errors
-      if (error.name === 'ZodError') {
-        this.logger.warn('Sign in validation failed', {
-          email: input.email,
-          errors: error.errors,
-        });
-        const fields = error.errors.reduce((acc: any, err: any) => {
-          acc[err.path.join('.')] = err.message;
-          return acc;
-        }, {});
-        throw new ValidationError('Invalid input', fields);
-      }
-
-      // Re-throw known errors
-      if (error instanceof AuthenticationError || error instanceof ValidationError) {
-        throw error;
-      }
-
-      // Log and throw unknown errors
-      this.logger.error('Sign in error', error.stack, {
+      } as AuthPayload;
+    } catch (error: unknown) {
+      if (error instanceof DomainError) throw toGraphQLError(error);
+      this.logger.error('Sign in error', (error as Error).stack, {
         email: input.email,
-        error: error.message,
       });
-      throw new AuthenticationError('Sign in failed. Please try again.');
+      throw new InternalServerError('Sign in failed. Please try again.');
     }
   }
 
   @Mutation(() => Boolean, { description: 'Sign out the current user' })
   @UseGuards(AuthGuard)
   async signOut(@Context() context: { req: Request; res: Response }): Promise<boolean> {
-    const userId = (context.req as any).user?.id;
+    const authenticatedReq = context.req as Request & { user?: { id?: string } };
+    const userId = authenticatedReq.user?.id;
     this.logger.log('Sign out attempt', { userId });
 
     try {
-      // Create a proper Request-like object for Better Auth
-      const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3001';
-      const mockRequest = new Request(`${baseUrl}/api/auth/sign-out`, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          origin: context.req.headers.origin || baseUrl,
-          'user-agent': context.req.headers['user-agent'] || 'GraphQL-Client',
-          ...(context.req.headers.cookie ? { cookie: context.req.headers.cookie } : {}),
-        },
-      });
+      const headers = this.extractHeaders(context.req);
+      const result = await this.signOutUseCase.execute(headers);
 
-      // Call Better Auth handler directly
-      const result = await auth.handler(mockRequest);
-
-      // Set cookie clearing headers from Better Auth response to GraphQL response
-      const setCookieHeaders = result.headers.getSetCookie?.() || [];
-      if (setCookieHeaders.length > 0) {
-        context.res.setHeader('set-cookie', setCookieHeaders);
-      }
+      this.setCookies(context.res, result.setCookieHeaders);
 
       this.logger.log('Sign out successful', { userId });
-
       return true;
-    } catch (error: any) {
-      this.logger.error('Sign out error', error.stack, {
-        userId,
-        error: error.message,
-      });
-      throw new AuthenticationError('Sign out failed. Please try again.');
+    } catch (error: unknown) {
+      if (error instanceof DomainError) throw toGraphQLError(error);
+      this.logger.error('Sign out error', (error as Error).stack, { userId });
+      throw new InternalServerError('Sign out failed. Please try again.');
     }
   }
 }

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-// Removed @thallesp/nestjs-better-auth to avoid global guards
-// Auth is now handled via main.ts middleware and local guards
+import { IAuthService } from '../../core/abstracts/auth-service.abstract';
+import { BetterAuthService } from './better-auth.service';
 
 @Module({
-  imports: [],
-  exports: [],
+  providers: [{ provide: IAuthService, useClass: BetterAuthService }],
+  exports: [IAuthService],
 })
 export class AuthModule {}
