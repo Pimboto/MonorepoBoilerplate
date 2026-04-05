@@ -3,14 +3,96 @@
 import { GraphQLClient } from 'graphql-request';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import {
-  CREATE_COLLECTION,
-  DELETE_COLLECTION,
-  GET_COLLECTION,
-  GET_COLLECTIONS,
-} from '@/lib/graphql/collections';
-import { CREATE_FILE, DELETE_FILE } from '@/lib/graphql/files';
 import type { Collection, CreateCollectionInput, CreateFileInput } from './types';
+
+// ---------------------------------------------------------------------------
+// GraphQL operations (plain strings, not imported from lib/graphql/)
+// ---------------------------------------------------------------------------
+
+const GET_COLLECTIONS = `
+  query GetCollections {
+    collections {
+      id
+      name
+      description
+      createdAt
+      updatedAt
+      userId
+      files {
+        id
+        url
+        type
+      }
+    }
+  }
+`;
+
+const GET_COLLECTION = `
+  query GetCollection($id: ID!) {
+    collection(id: $id) {
+      id
+      name
+      description
+      createdAt
+      updatedAt
+      userId
+      files {
+        id
+        name
+        url
+        key
+        size
+        type
+        collectionId
+        userId
+        createdAt
+        updatedAt
+      }
+    }
+  }
+`;
+
+const CREATE_COLLECTION = `
+  mutation CreateCollection($input: CreateCollectionInput!) {
+    createCollection(input: $input) {
+      id
+      name
+      description
+      createdAt
+      updatedAt
+      userId
+    }
+  }
+`;
+
+const DELETE_COLLECTION = `
+  mutation DeleteCollection($id: ID!) {
+    deleteCollection(id: $id)
+  }
+`;
+
+const CREATE_FILE = `
+  mutation CreateFile($input: CreateFileInput!) {
+    createFile(input: $input) {
+      id
+      name
+      url
+      key
+      size
+      type
+      collectionId
+      userId
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const DELETE_FILE = `
+  mutation DeleteFile($id: ID!) {
+    deleteFile(id: $id)
+  }
+`;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const endpoint = `${API_URL}/graphql`;

@@ -2,15 +2,15 @@ import type { User } from '@cocostudio/database';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { DomainError } from '../../../core/errors';
-import { CreateCollectionUseCase } from '../../../use-cases/collection/create-collection.use-case';
-import { DeleteCollectionUseCase } from '../../../use-cases/collection/delete-collection.use-case';
-import { GetCollectionUseCase } from '../../../use-cases/collection/get-collection.use-case';
-import { GetCollectionsUseCase } from '../../../use-cases/collection/get-collections.use-case';
-import { UpdateCollectionUseCase } from '../../../use-cases/collection/update-collection.use-case';
+import type { CreateCollectionUseCase } from '../../../use-cases/collection/create-collection.use-case';
+import type { DeleteCollectionUseCase } from '../../../use-cases/collection/delete-collection.use-case';
+import type { GetCollectionUseCase } from '../../../use-cases/collection/get-collection.use-case';
+import type { GetCollectionsUseCase } from '../../../use-cases/collection/get-collections.use-case';
+import type { UpdateCollectionUseCase } from '../../../use-cases/collection/update-collection.use-case';
 import { AuthGuard } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { InternalServerError, toGraphQLError } from '../errors/auth.error';
-import { CreateCollectionInput, UpdateCollectionInput } from '../types/collection.input';
+import type { CreateCollectionInput, UpdateCollectionInput } from '../types/collection.input';
 import { CollectionType } from '../types/collection.type';
 
 @Resolver(() => CollectionType)

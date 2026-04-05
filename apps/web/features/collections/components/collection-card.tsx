@@ -17,7 +17,7 @@ interface CollectionCardProps {
 
 export function CollectionCard({ collection }: CollectionCardProps) {
   const router = useRouter();
-  const [deleting, setDeleting] = useState(false);
+  const [, setDeleting] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   // 1. LOGICA DE IMAGENES (STACK)
@@ -58,18 +58,19 @@ export function CollectionCard({ collection }: CollectionCardProps) {
   const handleNavigate = () => router.push(`/app/collections/${collection.id}`);
 
   return (
-    <div
-      className="group relative w-full aspect-square cursor-pointer"
+    <button
+      type="button"
+      className="group relative w-full aspect-square cursor-pointer text-left bg-transparent border-none p-0"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={handleNavigate} // Movemos el click aquí para evitar conflictos con Card props
+      onClick={handleNavigate}
     >
       {/* === CAPAS TRASERAS (STACK EFFECT) === */}
 
       {/* Capa 3 (La más profunda - Se asoma mucho por la izquierda/abajo) */}
       <div
         className={clsx(
-          'absolute inset-0 rounded-2xl transition-all duration-500 ease-out overflow-hidden shadow-sm border border-white/10',
+          'absolute inset-0 rounded-2xl transition-all duration-500 ease-out overflow-hidden shadow-sm border border-foreground/10',
           // AQUI ESTA EL CAMBIO: rotate-6 (antes 3) y translate-x-4 para que salga por el lado
           isHovered
             ? 'translate-y-2 translate-x-3 rotate-6 scale-[0.92] opacity-100'
@@ -89,7 +90,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
       {/* Capa 2 (La del medio - Se asoma por la derecha/arriba inversa) */}
       <div
         className={clsx(
-          'absolute inset-0 rounded-2xl transition-all duration-500 ease-out delay-75 overflow-hidden shadow-sm border border-white/10',
+          'absolute inset-0 rounded-2xl transition-all duration-500 ease-out delay-75 overflow-hidden shadow-sm border border-foreground/10',
           // AQUI ESTA EL CAMBIO: -rotate-3 y translate-x negativo para cruzar el efecto
           isHovered
             ? '-translate-y-2 -translate-x-2 -rotate-3 scale-[0.96] opacity-100'
@@ -127,15 +128,17 @@ export function CollectionCard({ collection }: CollectionCardProps) {
         {/* OVERLAY DE CONTENIDO */}
         <div className="absolute inset-0 flex flex-col justify-between p-4">
           {/* HEADER CON TOOLTIPS CORREGIDOS */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation wrapper, not interactive */}
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: stopPropagation wrapper */}
           <div
             className="flex justify-end gap-2 translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out z-20"
             onClick={e => e.stopPropagation()}
           >
-            <div className="bg-background/20 backdrop-blur-md rounded-full p-1 flex gap-1 border border-white/10 shadow-lg">
+            <div className="bg-background/20 backdrop-blur-md rounded-full p-1 flex gap-1 border border-foreground/10 shadow-lg">
               {/* Edit Tooltip */}
               <Tooltip delay={0} closeDelay={0}>
                 <Tooltip.Trigger>
-                  <div className="hover:bg-white/20 rounded-full transition-colors cursor-pointer">
+                  <div className="hover:bg-foreground/20 rounded-full transition-colors cursor-pointer">
                     <EditCollectionModal
                       collection={collection}
                       onSuccess={() => router.refresh()}
@@ -145,7 +148,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
                 <Tooltip.Content>Edit details</Tooltip.Content>
               </Tooltip>
 
-              <div className="w-px bg-white/20 my-1" />
+              <div className="w-px bg-foreground/20 my-1" />
 
               {/* Delete Tooltip & Modal */}
               <Tooltip delay={0} closeDelay={0}>
@@ -204,7 +207,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
 
           {/* CENTRO: Botón "Entrar" */}
           <div className="flex-1 flex items-center justify-center pointer-events-none">
-            <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-2xl scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-400 ease-spring-bouncy">
+            <div className="w-14 h-14 rounded-full bg-foreground/10 backdrop-blur-md border border-foreground/20 flex items-center justify-center text-foreground shadow-2xl scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-400 ease-spring-bouncy">
               <Eye size={24} variant="Bold" />
             </div>
           </div>
@@ -225,7 +228,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
                 className={clsx(
                   'flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border backdrop-blur-md transition-colors',
                   mainImage
-                    ? 'bg-white/10 border-white/20 text-white'
+                    ? 'bg-foreground/10 border-foreground/20 text-foreground'
                     : 'bg-default-100 border-default-200 text-default-600',
                 )}
               >
@@ -236,7 +239,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               <div
                 className={clsx(
                   'flex items-center gap-1.5 text-[11px] font-medium',
-                  mainImage ? 'text-white/70' : 'text-muted-foreground',
+                  mainImage ? 'text-foreground/70' : 'text-muted-foreground',
                 )}
               >
                 <Calendar1 size={12} />
@@ -248,7 +251,9 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               <p
                 className={clsx(
                   'text-xs mt-2 line-clamp-1 transition-opacity duration-300',
-                  mainImage ? 'text-white/60 group-hover:text-white/90' : 'text-muted-foreground',
+                  mainImage
+                    ? 'text-foreground/60 group-hover:text-foreground/90'
+                    : 'text-muted-foreground',
                 )}
               >
                 {collection.description}
@@ -257,6 +262,6 @@ export function CollectionCard({ collection }: CollectionCardProps) {
           </div>
         </div>
       </Card>
-    </div>
+    </button>
   );
 }

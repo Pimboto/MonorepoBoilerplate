@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IDataServices } from '../../core';
+import type { IDataServices } from '../../core';
 import type { FileEntity } from '../../core/entities/file.entity';
 import { ForbiddenError, NotFoundError } from '../../core/errors';
 

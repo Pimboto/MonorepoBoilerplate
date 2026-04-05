@@ -57,6 +57,7 @@ export const pool = new Proxy({} as Pool, {
   get(_, prop) {
     const target = getPool();
     const value = target[prop as keyof Pool];
+    // biome-ignore lint/complexity/noBannedTypes: Proxy must bind arbitrary methods from Pool
     return typeof value === 'function' ? (value as Function).bind(target) : value;
   },
 });
@@ -65,6 +66,7 @@ export const prisma = new Proxy({} as PrismaClient, {
   get(_, prop) {
     const target = getPrismaClient();
     const value = target[prop as keyof PrismaClient];
+    // biome-ignore lint/complexity/noBannedTypes: Proxy must bind arbitrary methods from PrismaClient
     return typeof value === 'function' ? (value as Function).bind(target) : value;
   },
 });
@@ -96,21 +98,14 @@ export const auth = betterAuth({
           'forget-password': 'Reset your password - CocoStudio',
           'sign-in': 'Sign in to CocoStudio',
         };
-        try {
-          const result = await getResend().emails.send({
-            from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-            to: email,
-            subject: subjects[type] || 'CocoStudio Verification',
-            html: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`,
-          });
-          if (result.error) {
-            console.error('[Resend] Email send error:', JSON.stringify(result.error));
-            throw new Error(`Resend error: ${result.error.message}`);
-          }
-          console.log('[Resend] Email sent successfully', { to: email, type, id: result.data?.id });
-        } catch (error) {
-          console.error('[Resend] Failed to send email:', error);
-          throw error;
+        const result = await getResend().emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+          to: email,
+          subject: subjects[type] || 'CocoStudio Verification',
+          html: `<p>Your verification code is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`,
+        });
+        if (result.error) {
+          throw new Error(`Resend error: ${result.error.message}`);
         }
       },
       sendVerificationOnSignUp: true,

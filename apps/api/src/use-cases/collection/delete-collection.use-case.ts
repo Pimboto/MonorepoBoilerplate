@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { IDataServices } from '../../core';
-import { IStorageService } from '../../core/abstracts/storage-service.abstract';
+import type { IDataServices } from '../../core';
+import type { IStorageService } from '../../core/abstracts/storage-service.abstract';
 import { ForbiddenError, NotFoundError } from '../../core/errors';
 
 @Injectable()

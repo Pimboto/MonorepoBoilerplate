@@ -1,5 +1,6 @@
 'use client';
 
+import { requestPasswordResetSchema, resetPasswordSchema } from '@cocostudio/shared';
 import { Input, InputOTP, REGEXP_ONLY_DIGITS, toast } from '@heroui/react';
 import { Eye, EyeSlash } from 'iconsax-reactjs';
 import Link from 'next/link';
@@ -26,7 +27,12 @@ export default function ForgotPasswordPage() {
 
   const handleRequestReset = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!email.trim()) return;
+
+    const validation = requestPasswordResetSchema.safeParse({ email: email.trim() });
+    if (!validation.success) {
+      setError(validation.error.errors[0]?.message || 'Invalid email');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -53,12 +59,14 @@ export default function ForgotPasswordPage() {
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    const validation = resetPasswordSchema.safeParse({ email, otp, newPassword });
+    if (!validation.success) {
+      setError(validation.error.errors[0]?.message || 'Invalid input');
       return;
     }
 

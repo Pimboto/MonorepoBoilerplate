@@ -276,7 +276,7 @@ export const ThemeSwitch = ({ className, intensity = 1 }: ThemeSwitchProps) => {
       {/* Glass overlay */}
       <div
         aria-hidden
-        className="absolute inset-0 rounded-full border backdrop-blur-md border-white/25 bg-background/15"
+        className="absolute inset-0 rounded-full border backdrop-blur-md border-foreground/25 bg-background/15"
         style={{ zIndex: 5 }}
       />
 

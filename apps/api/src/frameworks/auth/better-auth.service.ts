@@ -55,14 +55,16 @@ export class BetterAuthService extends IAuthService {
       throw new InternalServerError('Sign up succeeded but no user was returned');
     }
 
-    const sessionHeaders = new Headers({ cookie: setCookieHeaders.join('; ') });
-    const session = await auth.api.getSession({ headers: sessionHeaders });
-
-    if (!session?.session) {
-      throw new InternalServerError('Sign up succeeded but no session was created');
+    // When requireEmailVerification is enabled, Better Auth does NOT create a session
+    // until the email is verified. Session may be null here — that's expected.
+    let session: unknown = null;
+    if (setCookieHeaders.length > 0) {
+      const sessionHeaders = new Headers({ cookie: setCookieHeaders.join('; ') });
+      const sessionData = await auth.api.getSession({ headers: sessionHeaders });
+      session = sessionData?.session ?? null;
     }
 
-    return { user: data.user, session: session.session, setCookieHeaders };
+    return { user: data.user, session, setCookieHeaders };
   }
 
   async signIn(

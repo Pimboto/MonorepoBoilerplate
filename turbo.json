@@ -14,8 +14,6 @@
       "env": [
         "DATABASE_URL",
         "DIRECT_DATABASE_URL",
-        "GRAPHQL_PLAYGROUND_ENABLED",
-        "GRAPHQL_INTROSPECTION_ENABLED",
         "UPLOADTHING_TOKEN",
         "NEXT_PUBLIC_*",
         "NODE_ENV"

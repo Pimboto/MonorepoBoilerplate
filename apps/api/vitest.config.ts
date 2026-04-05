@@ -8,10 +8,19 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'lcov'],
+      thresholds: {
+        // Minimum coverage for core business logic
+        branches: 50,
+        functions: 50,
+        lines: 50,
+        statements: 50,
+      },
+      include: ['src/use-cases/**', 'src/core/**'],
       exclude: [
         'node_modules/',
         'dist/',
+        '**/__tests__/**',
         '**/*.spec.ts',
         '**/*.e2e-spec.ts',
         'vitest.config.ts',

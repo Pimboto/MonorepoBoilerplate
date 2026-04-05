@@ -17,6 +17,11 @@ export const siteConfig = {
       icon: 'Home',
     },
     {
+      label: 'Workflows',
+      href: '/app/workflows',
+      icon: 'Hierarchy',
+    },
+    {
       label: 'Collections',
       href: '/app/collections',
       icon: 'Gallery',

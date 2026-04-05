@@ -1,5 +1,4 @@
 import '@/styles/globals.css';
-import { Toast } from '@heroui/react';
 import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
 import { fontSans } from '@/config/fonts';
@@ -35,7 +34,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
       >
         <Providers themeProps={{ attribute: 'class', defaultTheme: 'dark' }}>
-          <Toast.Provider placement="bottom end" />
           {children}
         </Providers>
       </body>

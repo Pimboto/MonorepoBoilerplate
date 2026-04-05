@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar, Tooltip } from '@heroui/react';
-import { ArrowDown2, ArrowLeft2, Gallery, Home2, Setting2 } from 'iconsax-reactjs';
+import { ArrowDown2, ArrowLeft2, Gallery, Hierarchy, Home2, Setting2 } from 'iconsax-reactjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useState } from 'react';
@@ -24,13 +24,14 @@ interface SidebarItem {
 
 interface NavItemProps {
   item: SidebarItem;
-  icon: React.ComponentType<{ size?: number | string; variant?: string }>;
+  icon: React.ComponentType<Record<string, unknown>>;
   isActive: boolean;
   isCollapsed: boolean;
 }
 
-const iconMap: Record<string, React.ComponentType<{ size?: number | string; variant?: string }>> = {
+const iconMap: Record<string, React.ComponentType<Record<string, unknown>>> = {
   Home: Home2,
+  Hierarchy: Hierarchy,
   Gallery: Gallery,
   Setting: Setting2,
 };
@@ -50,10 +51,10 @@ export const Sidebar = () => {
   const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const checkActive = (item: SidebarItem | SidebarSubItem) => {
+  const checkActive = (item: SidebarItem | SidebarSubItem): boolean => {
     return (
       pathname === item.href ||
-      ('items' in item && item.items?.some((child: SidebarSubItem) => checkActive(child)))
+      ('items' in item && (item.items?.some((child: SidebarSubItem) => checkActive(child)) ?? false))
     );
   };
 
@@ -195,7 +196,7 @@ const NavItem = ({ item, icon: Icon, isActive, isCollapsed }: NavItemProps) => {
             <p className="px-2 py-1 text-xs font-bold text-primary uppercase tracking-wider">
               {item.label}
             </p>
-            {item.items.map((subItem: SidebarSubItem) => (
+            {item.items?.map((subItem: SidebarSubItem) => (
               <Link key={subItem.href} href={subItem.href}>
                 <div className="px-2 py-1.5 hover:bg-content2 rounded-md text-sm transition-colors cursor-pointer">
                   {subItem.label}
@@ -229,7 +230,7 @@ const NavItem = ({ item, icon: Icon, isActive, isCollapsed }: NavItemProps) => {
 
         {isExpanded && (
           <div className="flex flex-col gap-1 pl-4 ml-3 border-l border-divider/50 animate-appearance-in">
-            {item.items.map((subItem: SidebarSubItem) => (
+            {item.items?.map((subItem: SidebarSubItem) => (
               <Link key={subItem.href} href={subItem.href} className="w-full">
                 <CustomButton
                   variant="ghost"

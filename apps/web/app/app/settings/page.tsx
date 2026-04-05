@@ -1,5 +1,6 @@
 'use client';
 
+import { changePasswordSchema, updateProfileSchema } from '@cocostudio/shared';
 import { Avatar, Card, Chip, Input, Spinner, toast } from '@heroui/react';
 // Añadimos Monitor, Mobile, Global para la mejora visual
 import {
@@ -161,14 +162,15 @@ export default function SettingsPage() {
   };
 
   const handleSaveProfile = async () => {
-    if (!name.trim()) {
-      toast.danger('Name cannot be empty');
+    const validation = updateProfileSchema.safeParse({ name: name.trim() });
+    if (!validation.success) {
+      toast.danger(validation.error.errors[0]?.message || 'Invalid input');
       return;
     }
     setSavingProfile(true);
     try {
       await graphqlClient.request(UPDATE_PROFILE, {
-        input: { name: name.trim() },
+        input: { name: validation.data.name },
       });
       await refetchUser();
       toast.success('Profile updated');
@@ -180,12 +182,9 @@ export default function SettingsPage() {
   };
 
   const handleChangePassword = async () => {
-    if (!currentPassword || !newPassword) {
-      toast.danger('Please fill in both password fields');
-      return;
-    }
-    if (newPassword.length < 8) {
-      toast.danger('New password must be at least 8 characters');
+    const validation = changePasswordSchema.safeParse({ currentPassword, newPassword });
+    if (!validation.success) {
+      toast.danger(validation.error.errors[0]?.message || 'Invalid input');
       return;
     }
     setSavingPassword(true);

@@ -9,8 +9,6 @@ services:
       - "3001:3001"
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      GRAPHQL_PLAYGROUND_ENABLED: "false"
-      GRAPHQL_INTROSPECTION_ENABLED: "false"
       NODE_ENV: production
       PORT: 3001
     restart: unless-stopped

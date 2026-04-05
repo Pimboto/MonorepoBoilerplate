@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UTApi } from 'uploadthing/server';
-import { IStorageService } from '../../core/abstracts/storage-service.abstract';
+import type { IStorageService } from '../../core/abstracts/storage-service.abstract';
 
 @Injectable()
 export class UploadThingStorageService implements IStorageService {

@@ -1,64 +1,79 @@
-# Next.js + HeroUI SaaS Starter Template
+# CocoStudio Web -- Next.js 15 + HeroUI v3
 
-Modern full-stack starter template built with **Next.js 15 (App Router)** + **HeroUI v2 (beta)**, TypeScript, Tailwind CSS 4, Zod schemas, UploadThing, and a clean **feature-based architecture**.
-
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)  
-[View the repository →](https://github.com/heroui-inc/next-app-template)
+Frontend application for CocoStudio, built with **Next.js 15 (App Router)** + **HeroUI v3**, TypeScript, Tailwind CSS 4, and a clean **feature-based architecture**.
 
 ## Features
 
-- **Next.js 15.5.9** (App Router + Turbopack support)
-- **HeroUI v2 (beta)** – beautiful, accessible React components
+- **Next.js 15.5.9** (App Router + Turbopack)
+- **HeroUI v3** -- accessible React components (React Aria + Tailwind CSS v4)
 - **Tailwind CSS 4** + Tailwind Variants
 - **Feature-based architecture** (domain-driven structure)
 - **Collections & File Management**:
   - Full CRUD for Collections (GraphQL)
   - File uploads via **UploadThing**
   - Validation with shared Zod schemas (`@cocostudio/shared`)
+- **Workflow Canvas**:
+  - Node-based visual editor with @xyflow/react
+  - Custom AI nodes (SkyImageEdits, SkyPlayground, SkyVideo)
+  - Drag-and-drop node palette
+  - CRUD operations via GraphQL
 - **GraphQL Integration**:
-  - Direct `graphql-request` client usage (all queries/mutations visible in DevTools)
-  - Client-side GraphQL calls with cookie-based authentication
-  - Type-safe mutations and queries with `gql` tagged templates
+  - Client-side GraphQL with `graphql-request`
+  - All queries/mutations visible in browser DevTools
+  - Cookie-based authentication
+- **Premium Design System**: Custom UI components in `components/ui/premium/`
 - Dark mode with `next-themes`
-- Biome for linting & formatting (fast & opinionated)
+- Biome for linting & formatting
 - Framer Motion for animations
 
 ## Project Structure
 
-We use a **feature-based architecture** to keep the codebase maintainable:
-
 ```text
 apps/web/
-├── app/                    # Next.js App Router
-│   ├── app/                # Main application routes
-│   │   ├── collections/    # Collections CRUD pages
-│   │   └── ...
-│   ├── api/                # Route Handlers (UploadThing, etc.)
-│   └── ...
-├── features/               # ← Business logic & domain features
-│   ├── collections/        # Collections domain (actions, components, types)
-│   ├── auth/
-│   └── ...
-├── packages/
-│   └── shared/
-│       ├── src/
-│       │   └── schemas/    # ← Global Zod schemas
-│       │       ├── collection.schema.ts
-│       │       └── file.schema.ts
-│       └── ...
-├── components/             # global UI components (ui/, layout/, etc.)
-├── lib/                    # utilities, api client, constants
-└── config/                 # env, site config
+├── app/                        # Next.js App Router
+│   ├── (auth)/                 # Auth route group
+│   │   ├── login/              # Sign in page
+│   │   ├── signup/             # Sign up page
+│   │   ├── verify-email/       # Email verification (OTP)
+│   │   └── forgot-password/    # Password reset
+│   ├── (marketing)/            # Landing page
+│   └── app/                    # Main application (authenticated)
+│       ├── collections/        # Collections CRUD + detail pages
+│       ├── workflows/          # Workflow list + editor
+│       │   └── editor/         # @xyflow/react canvas
+│       └── settings/           # User settings
+├── features/                   # Business logic & domain features
+│   ├── collections/            # Components, hooks, actions, types
+│   ├── files/                  # File upload components, hooks
+│   └── workflows/              # Canvas, node palette, custom nodes
+│       ├── components/         # WorkflowCanvas, NodePalette
+│       └── nodes/              # SkyImageEditsNode, SkyPlaygroundNode, SkyVideoNode
+├── components/                 # Global UI components
+│   ├── auth/                   # Auth-related components
+│   ├── ui/                     # Shared UI (CustomButton, premium/)
+│   ├── Sidebar.tsx
+│   └── navbar.tsx
+├── lib/                        # Utilities and API client
+│   ├── graphql-client.ts       # Configured GraphQLClient instance
+│   └── graphql/                # GraphQL queries & mutations
+│       ├── auth.ts
+│       ├── collections.ts
+│       ├── files.ts
+│       ├── otp.ts
+│       ├── profile.ts
+│       └── workflows.ts
+└── config/                     # Environment, site config
 ```
 
 ## Tech Stack
 
 - **Framework**: Next.js 15.5.9
-- **UI Library**: @heroui/react & @heroui/styles (beta)
-- **Styling**: Tailwind CSS 4 + Tailwind Variants
-- **Validation**: Zod (schemas in `packages/shared/src/schemas/`)
+- **UI Library**: @heroui/react v3 + @heroui/styles v3
+- **Styling**: Tailwind CSS 4.1.11 + Tailwind Variants
+- **Validation**: Zod (schemas from `@cocostudio/shared`)
 - **File Uploads**: UploadThing
 - **API**: GraphQL (via `graphql-request`)
+- **Workflow Editor**: @xyflow/react
 - **Icons**: iconsax-reactjs
 - **Lint & Format**: Biome
 - **Package Manager**: pnpm
@@ -71,28 +86,26 @@ apps/web/
    pnpm install
    ```
 
-   *Note: Ensure `.npmrc` has `public-hoist-pattern[]=*@heroui/*`*
-
 2. **Run development server**:
 
    ```bash
    pnpm dev
    ```
 
-3. **Collections API**:
-   The app connects to a GraphQL server (default: `http://localhost:3001/graphql`).
-   Override with `NEXT_PUBLIC_API_URL` env var.
+3. **API connection**:
+   The app connects to a GraphQL server at `http://localhost:3001/graphql` by default.
+   Override with the `NEXT_PUBLIC_API_URL` env var.
 
 ## GraphQL Architecture
 
-This app uses **client-side GraphQL** exclusively for all API communication:
+This app uses **client-side GraphQL** exclusively for all API communication.
 
 ### Why Client-Side GraphQL?
 
-- ✅ **Full visibility** - All GraphQL queries/mutations appear in browser DevTools and GraphQL Network Inspector
-- ✅ **Learning-friendly** - See exactly what's being sent to the API
-- ✅ **Type-safe** - Full TypeScript support with `graphql-request`
-- ✅ **Cookie authentication** - Automatic session cookie handling with `credentials: 'include'`
+- **Full visibility** -- All GraphQL queries/mutations appear in browser DevTools and GraphQL Network Inspector
+- **Learning-friendly** -- See exactly what data is being sent to and from the API
+- **Type-safe** -- Full TypeScript support with `graphql-request`
+- **Cookie authentication** -- Automatic session cookie handling with `credentials: 'include'`
 
 ### Implementation Pattern
 
@@ -117,39 +130,19 @@ const data = await graphqlClient.request(CREATE_COLLECTION, { input });
 
 ### Authentication Flow
 
-1. **Login/Signup** - GraphQL mutations set session cookies
-2. **Authenticated requests** - `graphqlClient` sends cookies automatically (`credentials: 'include'`)
-3. **Backend validation** - NestJS `AuthGuard` validates session from cookies
-
-### File Structure
-
-```text
-lib/
-├── graphql-client.ts       # Configured GraphQLClient instance
-└── graphql/
-    ├── auth.ts             # Auth mutations (signIn, signUp, signOut)
-    ├── collections.ts      # Collection queries/mutations
-    └── files.ts            # File queries/mutations
-```
+1. **Login/Signup** -- GraphQL mutations set session cookies
+2. **Authenticated requests** -- `graphqlClient` sends cookies automatically (`credentials: 'include'`)
+3. **Backend validation** -- NestJS `AuthGuard` validates session from cookies
 
 ### DevTools Integration
 
 Install [GraphQL Network Inspector](https://chrome.google.com/webstore/detail/graphql-network-inspector) to see all GraphQL traffic in real-time.
 
-## License
+## GraphQL Architecture Rules
 
-MIT License – see LICENSE
+**All GraphQL requests MUST be client-side (from the browser) so they are visible in DevTools.**
 
-Happy building! 🚀
-Made with ♥ by pimbo
-
-### GraphQL Architecture Rules
-
-## 🚨 REGLA FUNDAMENTAL
-
-**TODAS las peticiones GraphQL DEBEN ser client-side (desde el navegador) para que sean visibles en DevTools.**
-
-### ✅ CORRECTO - Client-Side GraphQL
+### CORRECT -- Client-Side GraphQL
 
 ```tsx
 'use client';
@@ -168,11 +161,11 @@ export function MyComponent() {
     fetchData();
   }, []);
   
-  // Visible en Network Tab > GraphQL ✅
+  // Visible in Network Tab > GraphQL
 }
 ```
 
-### ❌ INCORRECTO - Server Actions
+### INCORRECT -- Server Actions for GraphQL
 
 ```tsx
 // actions.ts
@@ -182,85 +175,31 @@ export async function getCollections() {
   return data.collections;
 }
 
-// NO visible en DevTools ❌
+// NOT visible in DevTools -- don't do this for GraphQL calls
 ```
 
-## 📋 Checklist
+### When to Use Server Actions
 
-### Login/Signup
+- Operations that are purely server-side (file system, etc.)
+- Anything that is NOT a GraphQL call
 
-- ✅ Usa `graphqlClient` directamente
-- ✅ Mutations visibles en DevTools
-- ✅ Archivo: `app/(marketing)/login/page.tsx`
+### When to Use Client-Side GraphQL
 
-### Collections
+- All GraphQL queries and mutations
+- Any data fetching you want to debug in the browser
 
-- ✅ Crear collection → client-side
-- ✅ Editar collection → client-side  
-- ✅ Borrar collection → client-side
-- ✅ Listar collections → client-side
-- ⚠️ **PENDIENTE**: Refactorizar `page.tsx` a client-side
+### Checklist
 
-### Files
+**Auth**: Login, signup, verify-email, forgot-password -- all client-side GraphQL mutations
 
-- ✅ Upload → client-side (después de UploadThing)
-- ✅ Delete → client-side
+**Collections**: Create, edit, delete, list -- all client-side
 
-## 🎯 Implementación
+**Files**: Upload (via UploadThing + GraphQL metadata), delete -- all client-side
 
-### Para Page Components
+**Workflows**: Create, edit, delete, list, editor canvas -- all client-side
 
-Si necesitas SSR (Server-Side Rendering) inicial pero quieres GraphQL visible:
+**Summary**: If you cannot see the request in browser DevTools, it is implemented incorrectly.
 
-```tsx
-'use client';
+## License
 
-export default function Page() {
-  const [collections, setCollections] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      const data = await graphqlClient.request(GET_COLLECTIONS);
-      setCollections(data.collections);
-      setLoading(false);
-    }
-    load();
-  }, []);
-
-  // GraphQL visible en DevTools ✅
-}
-```
-
-### No usar Server Actions para
-
-- ❌ GraphQL queries
-- ❌ GraphQL mutations
-- ❌ Cualquier cosa que quieras debuggear en el navegador
-
-### Sí usar Server Actions para
-
-- ✅ Operaciones de servidor puro (file system, etc.)
-- ✅ Cosas que NO sean GraphQL
-
-## 📁 Estructura de Archivos
-
-``` text
-features/
-├── collections/
-│   ├── actions.ts          ❌ ELIMINAR (o dejar vacío)
-│   ├── hooks/
-│   │   └── useCollections.ts  ✅ Client-side fetching
-│   └── components/
-│       └── collection-list.tsx  ✅ 'use client'
-```
-
-## 🔧 Herramientas
-
-- **GraphQL Client**: `graphqlClient` from `@/lib/graphql-client`
-- **DevTools**: Chrome/Firefox Network tab → Filter "graphql"
-- **Mutations**: Todos visibles como POST requests
-
----
-
-**RESUMEN**: Si no lo ves en DevTools, está mal implementado.
+MIT License

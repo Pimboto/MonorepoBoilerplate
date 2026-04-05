@@ -1,14 +1,23 @@
 'use client';
 
+import { verifyEmailSchema } from '@cocostudio/shared';
 import { InputOTP, REGEXP_ONLY_DIGITS, toast } from '@heroui/react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { CustomButton } from '@/components/ui/CustomButton';
 import { SEND_VERIFICATION_OTP, VERIFY_EMAIL } from '@/lib/graphql/otp';
 import { graphqlClient } from '@/lib/graphql-client';
 
 export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="text-center text-default-500">Loading...</div>}>
+      <VerifyEmailContent />
+    </Suspense>
+  );
+}
+
+function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
@@ -20,7 +29,12 @@ export default function VerifyEmailPage() {
 
   const handleVerify = async (code?: string) => {
     const otpValue = code || otp;
-    if (!email || otpValue.length !== 6) return;
+
+    const validation = verifyEmailSchema.safeParse({ email, otp: otpValue });
+    if (!validation.success) {
+      setError(validation.error.errors[0]?.message || 'Invalid input');
+      return;
+    }
 
     setVerifying(true);
     setError('');

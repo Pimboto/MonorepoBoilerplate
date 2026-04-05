@@ -1,13 +1,13 @@
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
 import { DomainError } from '../../../core/errors';
-import { RequestPasswordResetUseCase } from '../../../use-cases/otp/request-password-reset.use-case';
-import { ResetPasswordUseCase } from '../../../use-cases/otp/reset-password.use-case';
-import { SendVerificationOtpUseCase } from '../../../use-cases/otp/send-verification-otp.use-case';
-import { VerifyEmailUseCase } from '../../../use-cases/otp/verify-email.use-case';
-import { LoggerService } from '../../logger';
+import type { RequestPasswordResetUseCase } from '../../../use-cases/otp/request-password-reset.use-case';
+import type { ResetPasswordUseCase } from '../../../use-cases/otp/reset-password.use-case';
+import type { SendVerificationOtpUseCase } from '../../../use-cases/otp/send-verification-otp.use-case';
+import type { VerifyEmailUseCase } from '../../../use-cases/otp/verify-email.use-case';
+import type { LoggerService } from '../../logger';
 import { InternalServerError, toGraphQLError } from '../errors/auth.error';
-import {
+import type {
   RequestPasswordResetInput,
   ResetPasswordInput,
   SendVerificationOtpInput,

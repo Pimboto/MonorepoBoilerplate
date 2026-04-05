@@ -20,16 +20,17 @@
         "useTemplate": "warn",
         "useNodejsImportProtocol": "error",
         "noNonNullAssertion": "warn",
-        "useImportType": "off"
+        "useImportType": "error"
       },
       "suspicious": {
-        "noExplicitAny": "warn",
+        "noExplicitAny": "error",
         "noArrayIndexKey": "warn",
-        "noShadowRestrictedNames": "off"
+        "noShadowRestrictedNames": "off",
+        "noConsole": "error"
       },
       "correctness": {
-        "noUnusedVariables": "warn",
-        "noUnusedImports": "warn"
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
       },
       "complexity": {
         "noForEach": "off"
@@ -83,5 +84,27 @@
       "!**/*.config.js",
       "!**/*.config.ts"
     ]
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/__tests__/**", "**/*.spec.ts", "**/*.test.ts", "**/seed.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/prisma-generic-repository.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "warn"
+          }
+        }
+      }
+    }
+  ]
 }

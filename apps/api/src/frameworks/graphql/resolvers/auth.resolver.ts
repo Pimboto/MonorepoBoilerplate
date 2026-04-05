@@ -2,13 +2,13 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
 import { DomainError } from '../../../core/errors';
-import { SignInUseCase } from '../../../use-cases/auth/sign-in.use-case';
-import { SignOutUseCase } from '../../../use-cases/auth/sign-out.use-case';
-import { SignUpUseCase } from '../../../use-cases/auth/sign-up.use-case';
+import type { SignInUseCase } from '../../../use-cases/auth/sign-in.use-case';
+import type { SignOutUseCase } from '../../../use-cases/auth/sign-out.use-case';
+import type { SignUpUseCase } from '../../../use-cases/auth/sign-up.use-case';
 import { AuthGuard } from '../../auth/auth.guard';
-import { LoggerService } from '../../logger';
+import type { LoggerService } from '../../logger';
 import { InternalServerError, toGraphQLError } from '../errors/auth.error';
-import { SignInInput, SignUpInput } from '../types/auth.input';
+import type { SignInInput, SignUpInput } from '../types/auth.input';
 import { AuthPayload } from '../types/auth.payload';
 
 @Resolver()
@@ -58,7 +58,9 @@ export class AuthResolver {
       return {
         user: result.user,
         session: result.session,
-        message: 'Sign up successful',
+        message: result.session
+          ? 'Sign up successful'
+          : 'Sign up successful. Please verify your email.',
       } as AuthPayload;
     } catch (error: unknown) {
       if (error instanceof DomainError) throw toGraphQLError(error);

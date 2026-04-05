@@ -1,8 +1,8 @@
 import { GraphQLError } from 'graphql';
-import {
+import type {
   AuthenticationError as DomainAuthenticationError,
   BadRequestError as DomainBadRequestError,
-  type DomainError,
+  DomainError,
   ForbiddenError as DomainForbiddenError,
   InternalServerError as DomainInternalServerError,
   NotFoundError as DomainNotFoundError,

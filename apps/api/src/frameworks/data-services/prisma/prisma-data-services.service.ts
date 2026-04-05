@@ -4,17 +4,20 @@ import type {
   IDataServices,
   IFileRepository,
   IUserRepository,
+  IWorkflowRepository,
 } from '../../../core';
-import { PrismaService } from './prisma.service';
+import type { PrismaService } from './prisma.service';
 import { PrismaCollectionRepository } from './prisma-collection.repository';
 import { PrismaFileRepository } from './prisma-file.repository';
 import { PrismaUserRepository } from './prisma-user.repository';
+import { PrismaWorkflowRepository } from './prisma-workflow.repository';
 
 @Injectable()
 export class PrismaDataServices implements IDataServices, OnApplicationBootstrap {
   collections: ICollectionRepository;
   files: IFileRepository;
   users: IUserRepository;
+  workflows: IWorkflowRepository;
 
   constructor(readonly prisma: PrismaService) {}
 
@@ -22,5 +25,6 @@ export class PrismaDataServices implements IDataServices, OnApplicationBootstrap
     this.collections = new PrismaCollectionRepository();
     this.files = new PrismaFileRepository();
     this.users = new PrismaUserRepository();
+    this.workflows = new PrismaWorkflowRepository();
   }
 }

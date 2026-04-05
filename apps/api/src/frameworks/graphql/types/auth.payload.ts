@@ -7,8 +7,8 @@ export class AuthPayload {
   @Field(() => UserType)
   user: UserType;
 
-  @Field(() => SessionType)
-  session: SessionType;
+  @Field(() => SessionType, { nullable: true })
+  session?: SessionType | null;
 
   @Field()
   message: string;

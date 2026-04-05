@@ -4,8 +4,7 @@ import { useEffect } from 'react';
 
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    /* eslint-disable no-console */
+    // biome-ignore lint/suspicious/noConsole: Error boundary must log errors
     console.error(error);
   }, [error]);
 

@@ -50,23 +50,22 @@ const isProd = process.env.NODE_ENV === 'production';
         },
 
         customProps: req => {
-          const anyReq = req as any;
+          const extReq = req as unknown as Record<string, unknown>;
+          const user = extReq.user as Record<string, unknown> | undefined;
+          const auth = extReq.auth as Record<string, unknown> | undefined;
+          const session = extReq.session as Record<string, unknown> | undefined;
+          const ctx = extReq.ctx as Record<string, Record<string, unknown>> | undefined;
 
-          // Intenta sacar userId desde distintos sitios (rest, graphql, better-auth)
-          const userId =
-            anyReq.user?.id ||
-            anyReq.auth?.userId ||
-            anyReq.session?.userId ||
-            anyReq.ctx?.user?.id;
+          const userId = user?.id || auth?.userId || session?.userId || ctx?.user?.id;
 
           return {
             service: process.env.SERVICE_NAME || 'api',
             environment: process.env.NODE_ENV || 'development',
-            requestId: anyReq.id,
+            requestId: extReq.id as string | undefined,
             userId: userId ?? null,
-            ip: anyReq.ip,
-            method: anyReq.method,
-            path: anyReq.url,
+            ip: extReq.ip as string | undefined,
+            method: extReq.method as string | undefined,
+            path: extReq.url as string | undefined,
           };
         },
 
@@ -74,8 +73,8 @@ const isProd = process.env.NODE_ENV === 'production';
           ignore: req => {
             const url = req.url || '';
             if (url === '/health' || url === '/') return true;
-            // Ignorar introspección de GraphQL
-            const body = (req as any).body;
+            const extReq = req as unknown as Record<string, unknown>;
+            const body = extReq.body as Record<string, unknown> | undefined;
             if (url === '/graphql' && body?.operationName === 'IntrospectionQuery') {
               return true;
             }

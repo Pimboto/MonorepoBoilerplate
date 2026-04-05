@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IDataServices } from '../../core';
+import type { IDataServices } from '../../core';
 import type { Collection } from '../../core/entities/collection.entity';
 
 @Injectable()

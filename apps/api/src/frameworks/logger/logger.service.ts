@@ -1,6 +1,6 @@
 // logger.service.ts
 import { Injectable, Scope } from '@nestjs/common';
-import { PinoLogger } from 'nestjs-pino';
+import type { PinoLogger } from 'nestjs-pino';
 
 interface LogContext {
   context?: string; // e.g. 'AuthResolver'

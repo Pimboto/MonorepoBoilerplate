@@ -1,0 +1,55 @@
+name: Weekly Code Audit
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday at 9 AM UTC
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run static analysis
+        id: analysis
+        run: |
+          npx tsx scripts/analyze.ts > audit-report.txt 2>&1 || true
+          cat audit-report.txt
+
+      - name: Run tests
+        run: |
+          echo "" >> audit-report.txt
+          echo "=== Test Results ===" >> audit-report.txt
+          pnpm --filter=api test -- --run 2>&1 | tail -30 >> audit-report.txt || true
+
+      - name: Create issue if problems found
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('audit-report.txt', 'utf8');
+            const hasIssues = report.includes('issues found') && !report.includes('0 issues found');
+            const hasTestFailures = report.includes('FAIL') || report.includes('failed');
+
+            if (hasIssues || hasTestFailures) {
+              const date = new Date().toISOString().split('T')[0];
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Weekly Audit: Issues Found (${date})`,
+                body: '## Weekly Code Audit Report\n\n```\n' + report + '\n```\n\n---\n_Generated automatically by CocoStudio CI_',
+                labels: ['audit', 'automated']
+              });
+            }

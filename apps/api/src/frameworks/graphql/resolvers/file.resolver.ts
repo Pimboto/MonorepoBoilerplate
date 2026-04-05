@@ -2,13 +2,13 @@ import type { User } from '@cocostudio/database';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { DomainError } from '../../../core/errors';
-import { CreateFileUseCase } from '../../../use-cases/file/create-file.use-case';
-import { DeleteFileUseCase } from '../../../use-cases/file/delete-file.use-case';
-import { GetFilesByCollectionUseCase } from '../../../use-cases/file/get-files-by-collection.use-case';
+import type { CreateFileUseCase } from '../../../use-cases/file/create-file.use-case';
+import type { DeleteFileUseCase } from '../../../use-cases/file/delete-file.use-case';
+import type { GetFilesByCollectionUseCase } from '../../../use-cases/file/get-files-by-collection.use-case';
 import { AuthGuard } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { InternalServerError, toGraphQLError } from '../errors/auth.error';
-import { CreateFileInput } from '../types/file.input';
+import type { CreateFileInput } from '../types/file.input';
 import { FileType } from '../types/file.type';
 
 @Resolver(() => FileType)

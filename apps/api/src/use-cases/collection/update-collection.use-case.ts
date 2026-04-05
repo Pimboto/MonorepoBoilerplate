@@ -1,7 +1,8 @@
+import { updateCollectionSchema } from '@cocostudio/shared';
 import { Injectable } from '@nestjs/common';
-import { IDataServices } from '../../core';
+import type { IDataServices } from '../../core';
 import type { Collection } from '../../core/entities/collection.entity';
-import { ForbiddenError, NotFoundError } from '../../core/errors';
+import { ForbiddenError, NotFoundError, ValidationError } from '../../core/errors';
 
 @Injectable()
 export class UpdateCollectionUseCase {
@@ -12,6 +13,15 @@ export class UpdateCollectionUseCase {
     userId: string,
     dto: { name?: string; description?: string | null },
   ): Promise<Collection> {
+    const result = updateCollectionSchema.safeParse(dto);
+    if (!result.success) {
+      const fields: Record<string, string> = {};
+      for (const err of result.error.errors) {
+        fields[err.path.join('.')] = err.message;
+      }
+      throw new ValidationError('Invalid input', fields);
+    }
+
     const collection = await this.dataServices.collections.get(id);
     if (!collection) {
       throw new NotFoundError('Collection not found');
@@ -21,7 +31,7 @@ export class UpdateCollectionUseCase {
     }
     return this.dataServices.collections.update(id, {
       ...collection,
-      ...dto,
+      ...result.data,
     } as Collection);
   }
 }

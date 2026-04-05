@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { CREATE_FILE, DELETE_FILE, GET_FILES_BY_COLLECTION } from '@/lib/graphql/files';
 import { graphqlClient } from '@/lib/graphql-client';
-import type { FileItem } from '../types';
+import type { FileItem } from '@/features/collections/types';
 
 export function useFiles(collectionId: string) {
   const [files, setFiles] = useState<FileItem[]>([]);

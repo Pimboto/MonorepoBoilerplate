@@ -63,6 +63,9 @@ jobs:
       - name: Build shared package
         run: pnpm --filter=@cocostudio/shared build
 
+      - name: Generate Prisma client
+        run: pnpm --filter=@cocostudio/database exec prisma generate
+
       - name: Type check API
         run: pnpm --filter=api exec tsc --noEmit
 
@@ -89,6 +92,9 @@ jobs:
 
       - name: Build shared package
         run: pnpm --filter=@cocostudio/shared build
+
+      - name: Generate Prisma client
+        run: pnpm --filter=@cocostudio/database exec prisma generate
 
       - name: Run tests
         run: pnpm --filter=api test -- --run

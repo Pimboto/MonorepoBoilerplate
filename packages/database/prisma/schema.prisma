@@ -23,6 +23,7 @@ model User {
   accounts      Account[]
   collections   Collection[]
   files         File[]
+  workflows     Workflow[]
 
   @@unique([email])
   @@map("user")
@@ -107,4 +108,19 @@ model File {
   @@index([collectionId])
   @@index([userId])
   @@map("file")
+}
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  nodes       Json     @default("[]")
+  edges       Json     @default("[]")
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("workflow")
 }

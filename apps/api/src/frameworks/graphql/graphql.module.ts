@@ -25,6 +25,13 @@ import {
   RevokeSessionUseCase,
   UpdateProfileUseCase,
 } from '../../use-cases/profile';
+import {
+  CreateWorkflowUseCase,
+  DeleteWorkflowUseCase,
+  GetWorkflowsUseCase,
+  GetWorkflowUseCase,
+  UpdateWorkflowUseCase,
+} from '../../use-cases/workflow';
 import { AuthModule } from '../auth/auth.module';
 import { LoggerService } from '../logger';
 import { UploadThingStorageService } from '../storage/uploadthing-storage.service';
@@ -35,6 +42,7 @@ import { FileResolver } from './resolvers/file.resolver';
 import { OtpResolver } from './resolvers/otp.resolver';
 import { ProfileResolver } from './resolvers/profile.resolver';
 import { UserResolver } from './resolvers/user.resolver';
+import { WorkflowResolver } from './resolvers/workflow.resolver';
 
 @Module({
   imports: [GraphQLConfigModule, AuthModule],
@@ -45,6 +53,7 @@ import { UserResolver } from './resolvers/user.resolver';
     FileResolver,
     OtpResolver,
     ProfileResolver,
+    WorkflowResolver,
     LoggerService,
     { provide: IStorageService, useClass: UploadThingStorageService },
     SignUpUseCase,
@@ -66,6 +75,11 @@ import { UserResolver } from './resolvers/user.resolver';
     ListSessionsUseCase,
     RevokeSessionUseCase,
     UpdateProfileUseCase,
+    CreateWorkflowUseCase,
+    DeleteWorkflowUseCase,
+    GetWorkflowUseCase,
+    GetWorkflowsUseCase,
+    UpdateWorkflowUseCase,
   ],
 })
 export class GraphQLApiModule {}

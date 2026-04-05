@@ -1,19 +1,13 @@
 'use client';
 
+import { updateCollectionSchema } from '@cocostudio/shared';
 import { Form, Input, Label, Modal, TextArea, TextField, toast } from '@heroui/react';
 import { Edit } from 'iconsax-reactjs';
 import { useState } from 'react';
-import { z } from 'zod';
 import { CustomButton } from '@/components/ui/CustomButton';
 import { UPDATE_COLLECTION } from '@/lib/graphql/collections';
 import { graphqlClient } from '@/lib/graphql-client';
 import type { Collection, UpdateCollectionInput } from '../types';
-
-// Use Zod schema for validation
-const updateCollectionSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255).optional(),
-  description: z.string().max(1000).optional(),
-});
 
 interface EditCollectionModalProps {
   collection: Collection;

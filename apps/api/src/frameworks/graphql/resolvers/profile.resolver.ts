@@ -1,18 +1,17 @@
-import { changePasswordSchema, updateProfileSchema } from '@cocostudio/shared';
 import { UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
 import { DomainError } from '../../../core/errors';
-import { ChangePasswordUseCase } from '../../../use-cases/profile/change-password.use-case';
-import { ListSessionsUseCase } from '../../../use-cases/profile/list-sessions.use-case';
-import { RevokeSessionUseCase } from '../../../use-cases/profile/revoke-session.use-case';
-import { UpdateProfileUseCase } from '../../../use-cases/profile/update-profile.use-case';
+import type { ChangePasswordUseCase } from '../../../use-cases/profile/change-password.use-case';
+import type { ListSessionsUseCase } from '../../../use-cases/profile/list-sessions.use-case';
+import type { RevokeSessionUseCase } from '../../../use-cases/profile/revoke-session.use-case';
+import type { UpdateProfileUseCase } from '../../../use-cases/profile/update-profile.use-case';
 import { AuthGuard } from '../../auth/auth.guard';
 import { CurrentUser } from '../../auth/current-user.decorator';
-import { LoggerService } from '../../logger';
-import { InternalServerError, toGraphQLError, ValidationError } from '../errors/auth.error';
+import type { LoggerService } from '../../logger';
+import { InternalServerError, toGraphQLError } from '../errors/auth.error';
 import { MySessionsResponse } from '../types/my-sessions.response';
-import { ChangePasswordInput, UpdateProfileInput } from '../types/profile.input';
+import type { ChangePasswordInput, UpdateProfileInput } from '../types/profile.input';
 import { UserType } from '../types/user.type';
 
 interface AuthUser {
@@ -42,20 +41,11 @@ export class ProfileResolver {
     this.logger.log('Update profile attempt', { userId: user.id });
 
     try {
-      const validated = updateProfileSchema.parse(input);
-      const updated = await this.updateProfileUseCase.execute(user.id, validated);
+      const updated = await this.updateProfileUseCase.execute(user.id, input);
       this.logger.log('Profile updated', { userId: user.id });
       return updated as unknown as UserType;
     } catch (error: unknown) {
       if (error instanceof DomainError) throw toGraphQLError(error);
-      const err = error as { name?: string; errors?: { path: string[]; message: string }[] };
-      if (err.name === 'ZodError' && err.errors) {
-        const fields: Record<string, string> = {};
-        for (const e of err.errors) {
-          fields[e.path.join('.')] = e.message;
-        }
-        throw new ValidationError('Invalid input', fields);
-      }
       this.logger.error('Update profile error', (error as Error).stack, {
         userId: user.id,
       });
@@ -72,8 +62,6 @@ export class ProfileResolver {
     this.logger.log('Change password attempt', { userId: user.id });
 
     try {
-      changePasswordSchema.parse(input);
-
       const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3001';
       const headers: Record<string, string> = {
         origin: (context.req.headers.origin as string) || baseUrl,
@@ -86,14 +74,6 @@ export class ProfileResolver {
       return true;
     } catch (error: unknown) {
       if (error instanceof DomainError) throw toGraphQLError(error);
-      const err = error as { name?: string; errors?: { path: string[]; message: string }[] };
-      if (err.name === 'ZodError' && err.errors) {
-        const fields: Record<string, string> = {};
-        for (const e of err.errors) {
-          fields[e.path.join('.')] = e.message;
-        }
-        throw new ValidationError('Invalid input', fields);
-      }
       this.logger.error('Change password error', (error as Error).stack, {
         userId: user.id,
       });

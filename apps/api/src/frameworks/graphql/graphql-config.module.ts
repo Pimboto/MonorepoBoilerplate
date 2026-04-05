@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
-import { Inject, Module, OnModuleInit } from '@nestjs/common';
+import { Inject, Module, type OnModuleInit } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import type { Request, Response } from 'express';
 import { LoggerModule, LoggerService } from '../logger';

@@ -1,6 +1,6 @@
 import { verifyEmailSchema } from '@cocostudio/shared';
 import { Injectable } from '@nestjs/common';
-import { IAuthService } from '../../core/abstracts/auth-service.abstract';
+import type { IAuthService } from '../../core/abstracts/auth-service.abstract';
 import { ValidationError } from '../../core/errors';
 
 @Injectable()

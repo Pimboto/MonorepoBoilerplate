@@ -1,9 +1,11 @@
 import { join } from 'node:path';
+import type { NestInterceptor } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { config } from 'dotenv';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
+import { QueryAnalyzerInterceptor } from './frameworks/database/query-analyzer.interceptor';
 import { GqlLoggingInterceptor, LoggerService } from './frameworks/logger';
 
 // Load .env from the monorepo root (2 levels up from apps/api)
@@ -29,7 +31,15 @@ async function bootstrap() {
 
   // Register GraphQL logging interceptor (resolve() needed for TRANSIENT-scoped providers)
   const loggerService = await app.resolve(LoggerService);
-  app.useGlobalInterceptors(new GqlLoggingInterceptor(loggerService));
+  const interceptors: NestInterceptor[] = [new GqlLoggingInterceptor(loggerService)];
+
+  // Register slow-query / N+1 detection interceptor in development only
+  if (process.env.NODE_ENV !== 'production') {
+    const analyzerLogger = await app.resolve(LoggerService);
+    interceptors.push(new QueryAnalyzerInterceptor(analyzerLogger));
+  }
+
+  app.useGlobalInterceptors(...interceptors);
 
   // Enable CORS — restrict Apollo Sandbox to development only
   const isProd = process.env.NODE_ENV === 'production';
